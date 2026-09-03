@@ -6,23 +6,21 @@ import { auth } from "../../middleware/auth";
 
 const router = Router();
 
-// Register
 router.post("/register", authController.registerUser);
 
-// Login
 router.post("/login", authController.loginUser);
 
-// Google Login
 router.post("/google", authController.googleLogin);
 
-// Refresh access token
 router.post("/refresh-token", authController.refreshToken);
 
-// Get current logged-in user
-router.get("/me", auth(), authController.getMe);
+router.get("/me",  auth("CUSTOMER", "OPERATOR", "ADMIN"), authController.getMe);
 
-// Logout
 router.post("/logout", authController.logout);
+
+router.post("/verify-otp", authController.verifyOtp);
+
+router.post("/reset-password", authController.resetPassword);
 
 export const authRoutes = router;
 

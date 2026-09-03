@@ -9,6 +9,7 @@ import httpStatus from "http-status";
 import { globalErrorHandler } from "./errors/globalErrorHandler";
 import { sendResponse } from "./utils/sendResponse";
 import { authRoutes } from "./modules/auth/auth.route";
+import { userRouter } from "./modules/user/user.route";
 
 // Import auth route later
 // import { authRouter } from "./modules/auth/auth.route";
@@ -51,6 +52,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // Auth route will be added here
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRouter);
 
 // ==================== GLOBAL ERROR HANDLER ====================
 

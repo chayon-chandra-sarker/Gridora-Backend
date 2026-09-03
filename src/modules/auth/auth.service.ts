@@ -134,7 +134,7 @@ const loginUser = async (payload: ILoginUser) => {
   };
 };
 
-// Google Login
+
 const googleLogin = async (idToken: string) => {
   const ticket = await googleClient.verifyIdToken({
     idToken,
@@ -290,11 +290,113 @@ const getMe = async (userId: string) => {
   return user;
 };
 
+const verifyOtp = async (email: string, otp: string) => {
+  const passwordReset = await prisma.passwordReset.findFirst({
+    where: {
+      email,
+      used: false,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!passwordReset) {
+    throw new Error("Invalid OTP");
+  }
+
+  if (passwordReset.expiresAt < new Date()) {
+    throw new Error("OTP has expired");
+  }
+
+  // Compare plain OTP with hashed OTP
+  const isOtpMatched = await bcrypt.compare(
+    otp,
+    passwordReset.otp,
+  );
+
+  if (!isOtpMatched) {
+    throw new Error("Invalid OTP");
+  }
+
+  return {
+    message: "OTP verified successfully",
+    resetId: passwordReset.id,
+  };
+};
+
+const resetPassword = async (
+  resetId: string,
+  newPassword: string,
+) => {
+
+  // Password validation
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters long");
+  }
+
+  const passwordReset = await prisma.passwordReset.findUnique({
+    where: {
+      id: resetId,
+    },
+  });
+
+  if (!passwordReset) {
+    throw new Error("Invalid password reset request");
+  }
+
+  if (passwordReset.used) {
+    throw new Error("Password reset request has already been used");
+  }
+
+  if (passwordReset.expiresAt < new Date()) {
+    throw new Error("Password reset request has expired");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: passwordReset.email,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    }),
+
+    prisma.passwordReset.update({
+      where: {
+        id: passwordReset.id,
+      },
+      data: {
+        used: true,
+      },
+    }),
+  ]);
+
+  return {
+    message: "Password reset successfully",
+  };
+};
+
 export const authService = {
   registerUser,
   loginUser,
   googleLogin,
   refreshToken,
   getMe,
+  verifyOtp,
+  resetPassword,
 };
 

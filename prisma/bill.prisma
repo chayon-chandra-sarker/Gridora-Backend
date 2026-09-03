@@ -1,25 +1,25 @@
 model Bill {
-  id              String     @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId          String
-  user            User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  billingMonth    String
-  meterNumber     String
+  billingMonth String
+  meterNumber  String
 
   previousReading Int
   currentReading  Int
   units           Int
 
-  amount          Decimal    @db.Decimal(10, 2)
+  amount Decimal @db.Decimal(10, 2)
 
-  dueDate         DateTime
-  status          BillStatus @default(UNPAID)
+  dueDate DateTime
+  status  BillStatus @default(UNPAID)
 
-  payments        Payment[]
+  payments Payment[]
 
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, billingMonth])
   @@index([userId])

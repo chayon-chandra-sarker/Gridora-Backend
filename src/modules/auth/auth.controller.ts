@@ -52,7 +52,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Google Login
+
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
   const { idToken } = req.body;
 
@@ -161,6 +161,40 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const verifyOtp = catchAsync(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await authService.verifyOtp(email, otp);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "OTP verified successfully",
+    data: result,
+  });
+});
+
+const resetPassword = catchAsync(async (req, res) => {
+  const { resetId, newPassword } = req.body;
+
+  const result = await authService.resetPassword(
+    resetId,
+    newPassword,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Password reset successfully",
+    data: result,
+  });
+});
+
+
+
+
+
 export const authController = {
   registerUser,
   loginUser,
@@ -168,5 +202,7 @@ export const authController = {
   refreshToken,
   logout,
   getMe,
+  verifyOtp,
+  resetPassword,
 };
 

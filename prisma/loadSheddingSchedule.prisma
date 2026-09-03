@@ -1,17 +1,17 @@
 model LoadSheddingSchedule {
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  areaId      String
-  area        Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  areaId String
+  area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  startTime   DateTime
-  endTime     DateTime
+  startTime DateTime
+  endTime   DateTime
 
   reason      String?
   description String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([areaId])
   @@index([startTime])

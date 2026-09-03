@@ -1,21 +1,21 @@
 model Payment {
-  id            String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  billId        String
-  bill          Bill          @relation(fields: [billId], references: [id])
+  billId String
+  bill   Bill   @relation(fields: [billId], references: [id])
 
-  amount        Decimal       @db.Decimal(10, 2)
-  method        PaymentMethod @default(BKASH)
-  status        PaymentStatus @default(PENDING)
+  amount Decimal       @db.Decimal(10, 2)
+  method PaymentMethod @default(BKASH)
+  status PaymentStatus @default(PENDING)
 
-  transactionId String?       @unique
-  paymentId     String?       @unique
+  transactionId String? @unique
+  paymentId     String? @unique
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([billId])

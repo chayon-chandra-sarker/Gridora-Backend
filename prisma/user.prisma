@@ -11,15 +11,15 @@ model User {
   role           UserRole @default(CUSTOMER)
   isActive       Boolean  @default(true)
 
-  areaId         String?
-  area            Area?   @relation(fields: [areaId], references: [id])
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
 
-  bills          Bill[]
-  complaints     Complaint[]
-  payments       Payment[]
+  bills      Bill[]
+  complaints Complaint[]
+  payments   Payment[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([areaId])
   @@index([role])
