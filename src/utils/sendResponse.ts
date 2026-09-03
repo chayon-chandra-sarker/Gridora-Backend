@@ -1,5 +1,5 @@
-import type { Response } from "express";
 
+import type { Response } from "express";
 
 type TMeta = {
   page: number;
@@ -24,6 +24,9 @@ export const sendResponse = <T>(
     statusCode: data.statusCode,
     message: data.message,
     data: data.data,
-    ...(data.meta && { meta: data.meta }),
+    ...(data.meta && {
+      meta: data.meta,
+    }),
   });
 };
+

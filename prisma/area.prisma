@@ -1,0 +1,16 @@
+model Area {
+  id          String   @id @default(uuid())
+  name        String
+  city        String
+  district    String
+
+  users       User[]
+  schedules   LoadSheddingSchedule[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+    @@index([name])
+  @@index([city])
+  @@index([district])
+ @@map("areas")
+}

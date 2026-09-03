@@ -1,7 +1,12 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express";
 
+import type {
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from "express";
 
-export const catchAsync = (fn: RequestHandler) => {
+export const catchAsync = (fn: RequestHandler): RequestHandler => {
   return async (
     req: Request,
     res: Response,
@@ -14,3 +19,4 @@ export const catchAsync = (fn: RequestHandler) => {
     }
   };
 };
+

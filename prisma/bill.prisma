@@ -1,0 +1,31 @@
+model Bill {
+  id              String     @id @default(uuid())
+
+  userId          String
+  user            User       @relation(fields: [userId], references: [id])
+
+  billingMonth    String
+  meterNumber     String
+
+  previousReading Int
+  currentReading  Int
+  units           Int
+
+  amount          Decimal    @db.Decimal(10, 2)
+
+  dueDate         DateTime
+  status          BillStatus @default(UNPAID)
+
+  payments        Payment[]
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([userId, billingMonth])
+  @@index([userId])
+  @@index([meterNumber])
+  @@index([status])
+  @@index([dueDate])
+  @@index([billingMonth])
+  @@map("bills")
+}
