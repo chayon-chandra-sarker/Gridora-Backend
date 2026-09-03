@@ -10,6 +10,7 @@ import { globalErrorHandler } from "./errors/globalErrorHandler";
 import { sendResponse } from "./utils/sendResponse";
 import { authRoutes } from "./modules/auth/auth.route";
 import { userRouter } from "./modules/user/user.route";
+import { areaRoutes } from "./modules/area/area.route";
 
 // Import auth route later
 // import { authRouter } from "./modules/auth/auth.route";
@@ -50,9 +51,9 @@ app.get("/", (req: Request, res: Response) => {
 
 // ==================== API ROUTES ====================
 
-// Auth route will be added here
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
+app.use("/api/area", areaRoutes );
 
 // ==================== GLOBAL ERROR HANDLER ====================
 
