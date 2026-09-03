@@ -11,6 +11,7 @@ import { sendResponse } from "./utils/sendResponse";
 import { authRoutes } from "./modules/auth/auth.route";
 import { userRouter } from "./modules/user/user.route";
 import { areaRoutes } from "./modules/area/area.route";
+import { loadSheddingScheduleRoutes } from "./modules/LoadSheddingSchedule/loadSheddingSchedule.route";
 
 // Import auth route later
 // import { authRouter } from "./modules/auth/auth.route";
@@ -54,6 +55,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
 app.use("/api/area", areaRoutes );
+app.use("/api/load-shedding-schedules", loadSheddingScheduleRoutes);
 
 // ==================== GLOBAL ERROR HANDLER ====================
 
