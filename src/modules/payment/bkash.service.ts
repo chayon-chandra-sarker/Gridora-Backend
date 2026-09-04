@@ -2,6 +2,8 @@ import config from "../../config";
 import { prisma } from "../../lib/prisma";
 
 import { paymentService } from "../payment/payment.service";
+import { pdfService } from "../pdf/pdf.service";
+import { emailService } from "../email/email.service";
 
 export const getBkashIdToken = async () => {
   const url =
@@ -22,11 +24,8 @@ export const getBkashIdToken = async () => {
       },
 
       body: JSON.stringify({
-        app_key:
-          config.bkash_app_key,
-
-        app_secret:
-          config.bkash_app_secret,
+        app_key: config.bkash_app_key,
+        app_secret: config.bkash_app_secret,
       }),
     });
 
@@ -64,11 +63,11 @@ export const getBkashIdToken = async () => {
   }
 };
 
+
 export const createBkashPayment = async (
   userId: string,
   billId: string,
 ) => {
- 
   const bill =
     await prisma.bill.findUnique({
       where: {
@@ -79,7 +78,6 @@ export const createBkashPayment = async (
   if (!bill) {
     throw new Error("Bill not found");
   }
-
 
   if (bill.userId !== userId) {
     throw new Error(
@@ -93,7 +91,6 @@ export const createBkashPayment = async (
     );
   }
 
-
   const tokenResponse =
     await getBkashIdToken();
 
@@ -105,7 +102,6 @@ export const createBkashPayment = async (
       "Failed to get bKash ID token",
     );
   }
-
 
   const response = await fetch(
     `${config.bkash_base_url}/tokenized/checkout/create`,
@@ -158,7 +154,6 @@ export const createBkashPayment = async (
     );
   }
 
-
   const payment =
     await paymentService.createPayment({
       userId,
@@ -174,11 +169,9 @@ export const createBkashPayment = async (
   };
 };
 
-
 export const executeBkashPayment = async (
   paymentID: string,
 ) => {
-
   const tokenResponse =
     await getBkashIdToken();
 
@@ -220,7 +213,7 @@ export const executeBkashPayment = async (
     );
   }
 
-
+  // Find payment
   const payment =
     await prisma.payment.findUnique({
       where: {
@@ -234,14 +227,20 @@ export const executeBkashPayment = async (
     );
   }
 
+  // ========================================
+  // Check payment status
+  // ========================================
 
   const isSuccessful =
     result?.transactionStatus ===
       "Completed" &&
     result?.statusCode === "0000";
 
+  // ========================================
+  // Failed Payment
+  // ========================================
+
   if (!isSuccessful) {
-  
     const failedPayment =
       await paymentService.updatePayment(
         payment.id,
@@ -257,6 +256,10 @@ export const executeBkashPayment = async (
     };
   }
 
+  // ========================================
+  // Successful Payment
+  // ========================================
+
   const updatedPayment =
     await paymentService.updatePayment(
       payment.id,
@@ -267,9 +270,103 @@ export const executeBkashPayment = async (
       },
     );
 
+  // ========================================
+  // Get Customer + Bill Information
+  // ========================================
+
+  const paymentDetails =
+    await prisma.payment.findUnique({
+      where: {
+        id: updatedPayment.id,
+      },
+      include: {
+        user: true,
+        bill: true,
+      },
+    });
+
+  if (!paymentDetails) {
+    throw new Error(
+      "Payment details not found",
+    );
+  }
+
+  // ========================================
+  // Generate Invoice PDF
+  // ========================================
+
+  const invoiceNumber =
+    `INV-${paymentDetails.bill.id}`;
+
+  const invoicePdf =
+    await pdfService.generatePaymentInvoicePdf({
+      invoiceNumber,
+
+      customerName:
+        paymentDetails.user.name,
+
+      customerEmail:
+        paymentDetails.user.email,
+
+      meterNumber:
+        paymentDetails.bill.meterNumber,
+
+      billId:
+        paymentDetails.bill.id,
+
+      amount:
+        Number(paymentDetails.amount),
+
+      paymentMethod:
+        paymentDetails.method,
+
+      paymentId:
+        paymentDetails.paymentId,
+
+      transactionId:
+        paymentDetails.transactionId,
+
+      paymentDate:
+        paymentDetails.updatedAt,
+
+      status:
+        paymentDetails.status,
+    });
+
+  // ========================================
+  // Send Invoice Email
+  // ========================================
+
+  try {
+    await emailService.sendPaymentInvoiceEmail(
+      paymentDetails.user.email,
+      paymentDetails.user.name,
+      invoiceNumber,
+      invoicePdf,
+    );
+
+    console.log(
+      "Payment invoice email sent successfully",
+    );
+  } catch (error) {
+   
+    console.error(
+      "Failed to send payment invoice email:",
+      error,
+    );
+  }
+
   return {
     success: true,
+
     bkash: result,
+
     payment: updatedPayment,
+
+    invoice: {
+      invoiceNumber,
+      email: paymentDetails.user.email,
+      sent: true,
+    },
   };
 };
