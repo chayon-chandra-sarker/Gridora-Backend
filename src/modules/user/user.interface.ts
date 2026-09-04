@@ -1,3 +1,4 @@
+import type { UserRole } from "../../../generated/prisma/enums";
 
 export interface registerUserPayload {
   name: string;
@@ -5,6 +6,8 @@ export interface registerUserPayload {
   password: string;
   phone?: string;
   address?: string;
+  customerNumber?: string;
+  meterNumber?: string;
 }
 
 export interface UpdateProfilePayload {
@@ -12,6 +15,8 @@ export interface UpdateProfilePayload {
   phone?: string;
   address?: string;
   image?: string;
+  customerNumber?: string;
+  meterNumber?: string;
 }
 
 export interface UpdateUserPayload {
@@ -19,7 +24,9 @@ export interface UpdateUserPayload {
   email?: string;
   phone?: string;
   address?: string;
-  role?: "CUSTOMER" | "OPERATOR" | "ADMIN";
+  customerNumber?: string;
+  meterNumber?: string;
+  role?: UserRole ;
   isActive?: boolean;
   areaId?: string;
 }
@@ -33,4 +40,3 @@ export interface ResetPasswordPayload {
   otp: string;
   newPassword: string;
 }
-

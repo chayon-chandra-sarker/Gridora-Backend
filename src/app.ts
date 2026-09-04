@@ -12,6 +12,8 @@ import { authRoutes } from "./modules/auth/auth.route";
 import { userRouter } from "./modules/user/user.route";
 import { areaRoutes } from "./modules/area/area.route";
 import { loadSheddingScheduleRoutes } from "./modules/LoadSheddingSchedule/loadSheddingSchedule.route";
+import { billRoutes } from "./modules/bill/bill.route";
+import { tariffRoutes } from "./modules/tariff/tariff.route";
 
 // Import auth route later
 // import { authRouter } from "./modules/auth/auth.route";
@@ -54,9 +56,10 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
-app.use("/api/area", areaRoutes );
+app.use("/api/area", areaRoutes);
 app.use("/api/load-shedding-schedules", loadSheddingScheduleRoutes);
-
+app.use("/api/tariffs", tariffRoutes);
+app.use("/api/bills", billRoutes);
 // ==================== GLOBAL ERROR HANDLER ====================
 
 app.use(globalErrorHandler);

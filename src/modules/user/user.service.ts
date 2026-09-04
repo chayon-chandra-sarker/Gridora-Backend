@@ -1,8 +1,6 @@
-
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import type { UserRole } from "../../../generated/prisma/enums";
-import config from "../../config";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 
@@ -10,9 +8,9 @@ import type {
   UpdateProfilePayload,
   UpdateUserPayload,
 } from "./user.interface";
+
 import { sendOTPEmail } from "../../utils/email";
 
-// Update My Profile
 const updateMyProfileIntoDB = async (
   userId: string,
   payload: UpdateProfilePayload,
@@ -32,43 +30,96 @@ const updateMyProfileIntoDB = async (
 
   const updateData: Record<string, unknown> = {};
 
+  // Name
   if (payload.name !== undefined) {
     updateData.name = payload.name;
   }
 
+  // Phone
   if (payload.phone !== undefined) {
     updateData.phone = payload.phone;
   }
 
+  // Address
   if (payload.address !== undefined) {
     updateData.address = payload.address;
   }
 
-  const updatedUser = await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: updateData,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      phone: true,
-      customerNumber: true,
-      meterNumber: true,
-      address: true,
-      areaId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  // Customer Number
+  if (payload.customerNumber !== undefined) {
+    const customerNumberExist =
+      await prisma.user.findUnique({
+        where: {
+          customerNumber:
+            payload.customerNumber,
+        },
+      });
+
+    if (
+      customerNumberExist &&
+      customerNumberExist.id !== userId
+    ) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This customer number is already in use",
+      );
+    }
+
+    updateData.customerNumber =
+      payload.customerNumber;
+  }
+
+  // Meter Number
+  if (payload.meterNumber !== undefined) {
+    const meterNumberExist =
+      await prisma.user.findUnique({
+        where: {
+          meterNumber: payload.meterNumber,
+        },
+      });
+
+    if (
+      meterNumberExist &&
+      meterNumberExist.id !== userId
+    ) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This meter number is already in use",
+      );
+    }
+
+    updateData.meterNumber =
+      payload.meterNumber;
+  }
+
+  // Update User
+  const updatedUser =
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: updateData,
+
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        customerNumber: true,
+        meterNumber: true,
+        address: true,
+        areaId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   return updatedUser;
 };
 
-// Admin: Update User
 const updateUserIntoDB = async (
   id: string,
   payload: UpdateUserPayload,
@@ -88,18 +139,24 @@ const updateUserIntoDB = async (
 
   const updateData: Record<string, unknown> = {};
 
+  // Name
   if (payload.name !== undefined) {
     updateData.name = payload.name;
   }
 
+  // Email
   if (payload.email !== undefined) {
-    const emailExist = await prisma.user.findUnique({
-      where: {
-        email: payload.email,
-      },
-    });
+    const emailExist =
+      await prisma.user.findUnique({
+        where: {
+          email: payload.email,
+        },
+      });
 
-    if (emailExist && emailExist.id !== id) {
+    if (
+      emailExist &&
+      emailExist.id !== id
+    ) {
       throw new AppError(
         httpStatus.CONFLICT,
         "This email is already in use",
@@ -109,51 +166,108 @@ const updateUserIntoDB = async (
     updateData.email = payload.email;
   }
 
+  // Phone
   if (payload.phone !== undefined) {
     updateData.phone = payload.phone;
   }
 
+  // Address
   if (payload.address !== undefined) {
     updateData.address = payload.address;
   }
 
+  // Customer Number
+  if (payload.customerNumber !== undefined) {
+    const customerNumberExist =
+      await prisma.user.findUnique({
+        where: {
+          customerNumber:
+            payload.customerNumber,
+        },
+      });
+
+    if (
+      customerNumberExist &&
+      customerNumberExist.id !== id
+    ) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This customer number is already in use",
+      );
+    }
+
+    updateData.customerNumber =
+      payload.customerNumber;
+  }
+
+  // Meter Number
+  if (payload.meterNumber !== undefined) {
+    const meterNumberExist =
+      await prisma.user.findUnique({
+        where: {
+          meterNumber: payload.meterNumber,
+        },
+      });
+
+    if (
+      meterNumberExist &&
+      meterNumberExist.id !== id
+    ) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This meter number is already in use",
+      );
+    }
+
+    updateData.meterNumber =
+      payload.meterNumber;
+  }
+
+  // Role
   if (payload.role !== undefined) {
     updateData.role = payload.role;
   }
 
+  // Active Status
   if (payload.isActive !== undefined) {
-    updateData.isActive = payload.isActive;
+    updateData.isActive =
+      payload.isActive;
   }
 
+  // Area
   if (payload.areaId !== undefined) {
-    updateData.areaId = payload.areaId;
+    updateData.areaId =
+      payload.areaId;
   }
 
-  const updatedUser = await prisma.user.update({
-    where: {
-      id,
-    },
-    data: updateData,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      phone: true,
-      customerNumber: true,
-      meterNumber: true,
-      address: true,
-      areaId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  // Update User
+  const updatedUser =
+    await prisma.user.update({
+      where: {
+        id,
+      },
+
+      data: updateData,
+
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        customerNumber: true,
+        meterNumber: true,
+        address: true,
+        areaId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   return updatedUser;
 };
 
-// Admin: Update User Role
 const updateUserRoleIntoDB = async (
   id: string,
   role: UserRole,
@@ -171,64 +285,71 @@ const updateUserRoleIntoDB = async (
     );
   }
 
-  const result = await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      role,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const result =
+    await prisma.user.update({
+      where: {
+        id,
+      },
+
+      data: {
+        role,
+      },
+
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        customerNumber: true,
+        meterNumber: true,
+        address: true,
+        areaId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   return result;
 };
 
-// Admin: Get All Users
 const getAllUsersFromDB = async () => {
-  const result = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      phone: true,
-      customerNumber: true,
-      meterNumber: true,
-      address: true,
-      areaId: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const result =
+    await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        customerNumber: true,
+        meterNumber: true,
+        address: true,
+        areaId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
   return result;
 };
 
-// Admin: Update User Status
 const updateUserStatusIntoDB = async (
   id: string,
   isActive: boolean,
 ) => {
-  const isUserExist = await prisma.user.findUnique({
-    where: {
-      id,
-    },
-  });
+  const isUserExist =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
 
   if (!isUserExist) {
     throw new AppError(
@@ -237,7 +358,7 @@ const updateUserStatusIntoDB = async (
     );
   }
 
-  // Prevent deactivating an ADMIN account
+  // Prevent deactivating ADMIN
   if (
     isUserExist.role === "ADMIN" &&
     isActive === false
@@ -248,57 +369,82 @@ const updateUserStatusIntoDB = async (
     );
   }
 
-  const result = await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      isActive,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const result =
+    await prisma.user.update({
+      where: {
+        id,
+      },
+
+      data: {
+        isActive,
+      },
+
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        customerNumber: true,
+        meterNumber: true,
+        address: true,
+        areaId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   return result;
 };
 
-const forgotPassword = async (email: string) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+const forgotPassword = async (
+  email: string,
+) => {
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
   if (!user) {
-    throw new AppError(404, "User not found.");
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "User not found.",
+    );
   }
 
- 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate 6 digit OTP
+  const otp =
+    Math.floor(
+      100000 +
+        Math.random() * 900000,
+    ).toString();
 
-  
-  const hashedOTP = await bcrypt.hash(otp, 10);
+  // Hash OTP
+  const hashedOTP =
+    await bcrypt.hash(otp, 10);
 
-  const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+  // OTP expires in 2 minutes
+  const expiresAt =
+    new Date(
+      Date.now() + 2 * 60 * 1000,
+    );
 
+  // Invalidate previous OTPs
   await prisma.passwordReset.updateMany({
     where: {
       email,
       used: false,
     },
+
     data: {
       used: true,
     },
   });
 
-  
+  // Create new OTP
   await prisma.passwordReset.create({
     data: {
       email,
@@ -307,12 +453,16 @@ const forgotPassword = async (email: string) => {
     },
   });
 
-
-  await sendOTPEmail(email, otp);
+  // Send OTP
+  await sendOTPEmail(
+    email,
+    otp,
+  );
 
   return {
     email,
-    message: "OTP sent successfully. OTP will expire in 2 minutes.",
+    message:
+      "OTP sent successfully. OTP will expire in 2 minutes.",
   };
 };
 
@@ -324,4 +474,3 @@ export const userService = {
   updateUserStatusIntoDB,
   forgotPassword,
 };
-
