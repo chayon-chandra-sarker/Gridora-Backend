@@ -15,6 +15,7 @@ import { loadSheddingScheduleRoutes } from "./modules/LoadSheddingSchedule/loadS
 import { billRoutes } from "./modules/bill/bill.route";
 import { tariffRoutes } from "./modules/tariff/tariff.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
+import { complaintRoutes } from "./modules/complaint/complaint.route";
 
 // Import auth route later
 // import { authRouter } from "./modules/auth/auth.route";
@@ -62,6 +63,7 @@ app.use("/api/load-shedding-schedules", loadSheddingScheduleRoutes);
 app.use("/api/tariffs", tariffRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/complaints", complaintRoutes);
 // ==================== GLOBAL ERROR HANDLER ====================
 
 app.use(globalErrorHandler);
