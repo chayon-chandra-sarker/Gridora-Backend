@@ -1,14 +1,11 @@
 model Tariff {
-  id String @id @default(uuid())
-
+  id           String   @id @default(uuid())
   minUnit      Int
   maxUnit      Int?
-  pricePerUnit Decimal @db.Decimal(10, 2)
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  pricePerUnit Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([minUnit])
   @@index([maxUnit])

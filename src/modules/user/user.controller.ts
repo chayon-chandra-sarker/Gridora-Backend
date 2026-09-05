@@ -110,6 +110,42 @@ const forgotPassword = catchAsync(async (req, res) => {
   });
 });
 
+const uploadProfileImage = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const userId = req.user!.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload an image",
+      });
+    }
+
+    const result =
+      await userService.uploadProfileImage(
+        userId,
+        req.file,
+      );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile image uploaded successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to upload profile image",
+    });
+  }
+};
+
 export const userController = {
 
   updateMyProfile,
@@ -118,5 +154,6 @@ export const userController = {
   updateUserRole,
   updateUserStatus,
   forgotPassword,
+  uploadProfileImage,
 };
 

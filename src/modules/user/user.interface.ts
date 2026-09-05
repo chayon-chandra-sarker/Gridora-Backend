@@ -24,6 +24,7 @@ export interface UpdateUserPayload {
   email?: string;
   phone?: string;
   address?: string;
+  image?:  string;
   customerNumber?: string;
   meterNumber?: string;
   role?: UserRole ;

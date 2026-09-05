@@ -1,25 +1,25 @@
 model User {
-  id             String   @id @default(uuid())
+  id             String      @id @default(uuid())
   name           String
-  email          String   @unique
+  email          String      @unique
   password       String?
-  googleId       String?  @unique
   phone          String?
-  customerNumber String?  @unique
-  meterNumber    String?  @unique
+  customerNumber String?     @unique
+  meterNumber    String?     @unique
   address        String?
-  role           UserRole @default(CUSTOMER)
-  isActive       Boolean  @default(true)
+  role           UserRole    @default(CUSTOMER)
+  isActive       Boolean     @default(true)
+  areaId         String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  googleId       String?     @unique
 
-  areaId String?
-  area   Area?   @relation(fields: [areaId], references: [id])
+  image          String?
 
-  bills      Bill[]
-  complaints Complaint[]
-  payments   Payment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  bills          Bill[]
+  complaints     Complaint[]
+  payments       Payment[]
+  area           Area?       @relation(fields: [areaId], references: [id])
 
   @@index([areaId])
   @@index([role])

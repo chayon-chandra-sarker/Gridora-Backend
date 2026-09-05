@@ -10,6 +10,7 @@ import type {
 } from "./user.interface";
 
 import { sendOTPEmail } from "../../utils/email";
+import cloudinary from "../../config/cloudinary";
 
 const updateMyProfileIntoDB = async (
   userId: string,
@@ -466,6 +467,64 @@ const forgotPassword = async (
   };
 };
 
+const uploadProfileImage = async (
+  userId: string,
+  file: Express.Multer.File,
+) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const uploadResult = await new Promise<any>(
+  (resolve, reject) => {
+    const uploadStream =
+      cloudinary.uploader.upload_stream(
+        {
+          folder: "gridora/profile-images",
+          public_id: `user-${userId}`,
+          overwrite: true,
+          resource_type: "image",
+        },
+        (error: Error | undefined, result: any) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        },
+      );
+
+    uploadStream.end(file.buffer);
+  },
+);
+
+  const updatedUser =
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        image: uploadResult.secure_url,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        image: true,
+        role: true,
+      },
+    });
+
+  return updatedUser;
+};
+
 export const userService = {
   updateMyProfileIntoDB,
   updateUserIntoDB,
@@ -473,4 +532,5 @@ export const userService = {
   getAllUsersFromDB,
   updateUserStatusIntoDB,
   forgotPassword,
+  uploadProfileImage,
 };

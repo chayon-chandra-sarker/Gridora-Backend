@@ -1,14 +1,12 @@
 model Area {
-  id       String @id @default(uuid())
-  name     String
-  city     String
-  district String
-
-  users     User[]
+  id        String                 @id @default(uuid())
+  name      String
+  city      String
+  district  String
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
   schedules LoadSheddingSchedule[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users     User[]
 
   @@index([name])
   @@index([city])
