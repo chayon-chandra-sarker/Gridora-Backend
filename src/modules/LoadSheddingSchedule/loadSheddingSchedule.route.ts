@@ -4,37 +4,36 @@ import { loadSheddingScheduleController } from "./loadSheddingSchedule.controlle
 import { UserRole } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/auth";
 
-
 const router = express.Router();
 
 router.post(
-  "/",
-  auth(UserRole.ADMIN, UserRole.OPERATOR),
-  loadSheddingScheduleController.createLoadSheddingSchedule,
+	"/",
+	auth(UserRole.ADMIN, UserRole.OPERATOR),
+	loadSheddingScheduleController.createLoadSheddingSchedule,
 );
 
 router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
-  loadSheddingScheduleController.getAllLoadSheddingSchedules,
+	"/",
+	auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
+	loadSheddingScheduleController.getAllLoadSheddingSchedules,
 );
 
 router.get(
-  "/:id",
-  auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
-  loadSheddingScheduleController.getSingleLoadSheddingSchedule,
+	"/:id",
+	auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
+	loadSheddingScheduleController.getSingleLoadSheddingSchedule,
 );
 
 router.put(
-  "/:id",
-  auth(UserRole.ADMIN, UserRole.OPERATOR),
-  loadSheddingScheduleController.updateLoadSheddingSchedule,
+	"/:id",
+	auth(UserRole.ADMIN, UserRole.OPERATOR),
+	loadSheddingScheduleController.updateLoadSheddingSchedule,
 );
 
 router.delete(
-  "/:id",
-  auth(UserRole.ADMIN),
-  loadSheddingScheduleController.deleteLoadSheddingSchedule,
+	"/:id",
+	auth(UserRole.ADMIN),
+	loadSheddingScheduleController.deleteLoadSheddingSchedule,
 );
 
 export const loadSheddingScheduleRoutes = router;

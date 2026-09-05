@@ -4,25 +4,25 @@ import config from "../../config";
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: config.email_user,
-    pass: config.email_pass,
-  },
+	service: "gmail",
+	auth: {
+		user: config.email_user,
+		pass: config.email_pass,
+	},
 });
 
 // Send Bill PDF Email
 const sendBillEmail = async (
-  to: string,
-  customerName: string,
-  billingMonth: string,
-  pdfBuffer: Buffer,
+	to: string,
+	customerName: string,
+	billingMonth: string,
+	pdfBuffer: Buffer,
 ) => {
-  await transporter.sendMail({
-    from: `"Gridora" <${config.email_user}>`,
-    to,
-    subject: `Gridora Electricity Bill - ${billingMonth}`,
-    html: `
+	await transporter.sendMail({
+		from: `"Gridora" <${config.email_user}>`,
+		to,
+		subject: `Gridora Electricity Bill - ${billingMonth}`,
+		html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2>Gridora Electricity Bill</h2>
 
@@ -46,28 +46,28 @@ const sendBillEmail = async (
         </p>
       </div>
     `,
-    attachments: [
-      {
-        filename: `Gridora-Bill-${billingMonth}.pdf`,
-        content: pdfBuffer,
-        contentType: "application/pdf",
-      },
-    ],
-  });
+		attachments: [
+			{
+				filename: `Gridora-Bill-${billingMonth}.pdf`,
+				content: pdfBuffer,
+				contentType: "application/pdf",
+			},
+		],
+	});
 };
 
 // Send Payment Invoice Email
 const sendPaymentInvoiceEmail = async (
-  to: string,
-  customerName: string,
-  invoiceNumber: string,
-  pdfBuffer: Buffer,
+	to: string,
+	customerName: string,
+	invoiceNumber: string,
+	pdfBuffer: Buffer,
 ) => {
-  await transporter.sendMail({
-    from: `"Gridora" <${config.email_user}>`,
-    to,
-    subject: `Gridora Payment Invoice - ${invoiceNumber}`,
-    html: `
+	await transporter.sendMail({
+		from: `"Gridora" <${config.email_user}>`,
+		to,
+		subject: `Gridora Payment Invoice - ${invoiceNumber}`,
+		html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2>Gridora Payment Successful</h2>
 
@@ -94,17 +94,17 @@ const sendPaymentInvoiceEmail = async (
         </p>
       </div>
     `,
-    attachments: [
-      {
-        filename: `Gridora-Invoice-${invoiceNumber}.pdf`,
-        content: pdfBuffer,
-        contentType: "application/pdf",
-      },
-    ],
-  });
+		attachments: [
+			{
+				filename: `Gridora-Invoice-${invoiceNumber}.pdf`,
+				content: pdfBuffer,
+				contentType: "application/pdf",
+			},
+		],
+	});
 };
 
 export const emailService = {
-  sendBillEmail,
-  sendPaymentInvoiceEmail,
+	sendBillEmail,
+	sendPaymentInvoiceEmail,
 };

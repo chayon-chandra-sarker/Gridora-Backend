@@ -1,26 +1,25 @@
 import nodemailer from "nodemailer";
 import config from "../config";
 
-
 // Gmail SMTP transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: config.email_user,
-    pass: config.email_pass,
-  },
+	service: "gmail",
+	auth: {
+		user: config.email_user,
+		pass: config.email_pass,
+	},
 });
 
 // Send OTP Email
 export const sendOTPEmail = async (
-  email: string,
-  otp: string,
+	email: string,
+	otp: string,
 ): Promise<void> => {
-  await transporter.sendMail({
-    from: `"Gridora" <${config.email_user}>`,
-    to: email,
-    subject: "Gridora - Password Reset OTP",
-    html: `
+	await transporter.sendMail({
+		from: `"Gridora" <${config.email_user}>`,
+		to: email,
+		subject: "Gridora - Password Reset OTP",
+		html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
         <h2>Gridora Password Reset</h2>
 
@@ -51,5 +50,5 @@ export const sendOTPEmail = async (
         <p>Regards,<br />Gridora Team</p>
       </div>
     `,
-  });
+	});
 };

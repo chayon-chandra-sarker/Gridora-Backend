@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 
 import { authController } from "./auth.controller";
@@ -14,7 +13,7 @@ router.post("/google", authController.googleLogin);
 
 router.post("/refresh-token", authController.refreshToken);
 
-router.get("/me",  auth("CUSTOMER", "OPERATOR", "ADMIN"), authController.getMe);
+router.get("/me", auth("CUSTOMER", "OPERATOR", "ADMIN"), authController.getMe);
 
 router.post("/logout", authController.logout);
 
@@ -23,4 +22,3 @@ router.post("/verify-otp", authController.verifyOtp);
 router.post("/reset-password", authController.resetPassword);
 
 export const authRoutes = router;
-

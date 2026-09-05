@@ -1,4 +1,3 @@
-
 import app from "./app";
 import config from "./config";
 import { prisma } from "./lib/prisma";
@@ -6,24 +5,23 @@ import { prisma } from "./lib/prisma";
 const PORT = config.port;
 
 async function main() {
-  try {
-    // Connect to database
-    await prisma.$connect();
+	try {
+		// Connect to database
+		await prisma.$connect();
 
-    console.log("Connected to the database successfully");
+		console.log("Connected to the database successfully");
 
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Error starting the server:", error);
+		// Start server
+		app.listen(PORT, () => {
+			console.log(`Server is running on port ${PORT}`);
+		});
+	} catch (error) {
+		console.error("Error starting the server:", error);
 
-    await prisma.$disconnect();
+		await prisma.$disconnect();
 
-    process.exit(1);
-  }
+		process.exit(1);
+	}
 }
 
 main();
-

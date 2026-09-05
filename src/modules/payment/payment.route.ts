@@ -7,59 +7,43 @@ import { UserRole } from "../../../generated/prisma/enums";
 const router = express.Router();
 
 router.post(
-  "/",
-  auth(
-    UserRole.ADMIN,
-    UserRole.OPERATOR,
-    UserRole.CUSTOMER,
-  ),
-  paymentController.createPayment,
+	"/",
+	auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
+	paymentController.createPayment,
 );
 
 router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.OPERATOR),
-  paymentController.getAllPayments,
+	"/",
+	auth(UserRole.ADMIN, UserRole.OPERATOR),
+	paymentController.getAllPayments,
 );
 
 router.get(
-  "/my-payments",
-  auth(UserRole.CUSTOMER),
-  paymentController.getMyPayments,
+	"/my-payments",
+	auth(UserRole.CUSTOMER),
+	paymentController.getMyPayments,
 );
 
 router.post(
-  "/bkash/create",
-  auth(UserRole.CUSTOMER),
-  paymentController.createPaymentBkash,
+	"/bkash/create",
+	auth(UserRole.CUSTOMER),
+	paymentController.createPaymentBkash,
 );
 
+router.get("/bkash/callback", paymentController.bkashCallback);
 
 router.get(
-  "/bkash/callback",
-  paymentController.bkashCallback,
-);
-
-router.get(
-  "/:id",
-  auth(
-    UserRole.ADMIN,
-    UserRole.OPERATOR,
-    UserRole.CUSTOMER,
-  ),
-  paymentController.getSinglePayment,
+	"/:id",
+	auth(UserRole.ADMIN, UserRole.OPERATOR, UserRole.CUSTOMER),
+	paymentController.getSinglePayment,
 );
 
 router.put(
-  "/:id",
-  auth(UserRole.ADMIN, UserRole.OPERATOR),
-  paymentController.updatePayment,
+	"/:id",
+	auth(UserRole.ADMIN, UserRole.OPERATOR),
+	paymentController.updatePayment,
 );
 
-router.delete(
-  "/:id",
-  auth(UserRole.ADMIN),
-  paymentController.deletePayment,
-);
+router.delete("/:id", auth(UserRole.ADMIN), paymentController.deletePayment);
 
 export const paymentRoutes = router;

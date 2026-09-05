@@ -1,19 +1,14 @@
 import { prisma } from "../../lib/prisma";
 
-import type {
-  ICreateBill,
-  IUpdateBill,
-} from "./bill.interface";
+import type { ICreateBill, IUpdateBill } from "./bill.interface";
 
 import { pdfService } from "../pdf/pdf.service";
 import { emailService } from "../email/email.service";
 
-
-
 const parseDueDate = (dueDate: string): Date => {
   const date = new Date(dueDate);
 
-  if (isNaN(date.getTime())) {
+  if (Number.isNaN(date.getTime())) {
     throw new Error("Invalid due date");
   }
 
@@ -59,40 +54,28 @@ const calculateBillAmount = async (units: number) => {
     if (maxUnit === null) {
       slabUnits = units - minUnit + 1;
     } else {
-      slabUnits =
-        Math.min(units, maxUnit) -
-        minUnit +
-        1;
+      slabUnits = Math.min(units, maxUnit) - minUnit + 1;
     }
 
     if (slabUnits <= 0) {
       continue;
     }
 
-    const unitsInSlab = Math.min(
-      remainingUnits,
-      slabUnits,
-    );
+    const unitsInSlab = Math.min(remainingUnits, slabUnits);
 
-    totalAmount +=
-      unitsInSlab *
-      Number(tariff.pricePerUnit);
+    totalAmount += unitsInSlab * Number(tariff.pricePerUnit);
 
     remainingUnits -= unitsInSlab;
   }
 
   if (remainingUnits > 0) {
-    throw new Error(
-      "No tariff found for all consumed units",
-    );
+    throw new Error("No tariff found for all consumed units");
   }
 
   return Number(totalAmount.toFixed(2));
 };
 
-const createBill = async (
-  payload: ICreateBill,
-) => {
+const createBill = async (payload: ICreateBill) => {
   const {
     userId,
     billingMonth,
@@ -102,13 +85,8 @@ const createBill = async (
     dueDate,
   } = payload;
 
-  if (
-    previousReading < 0 ||
-    currentReading < 0
-  ) {
-    throw new Error(
-      "Reading cannot be negative",
-    );
+  if (previousReading < 0 || currentReading < 0) {
+    throw new Error("Reading cannot be negative");
   }
 
   if (currentReading < previousReading) {
@@ -117,8 +95,7 @@ const createBill = async (
     );
   }
 
-  const units =
-    currentReading - previousReading;
+  const units = currentReading - previousReading;
 
   const user = await prisma.user.findUnique({
     where: {
@@ -131,34 +108,25 @@ const createBill = async (
   }
 
   if (!user.email) {
-    throw new Error(
-      "Customer email is not available",
-    );
+    throw new Error("Customer email is not available");
   }
 
-
-  const existingBill =
-    await prisma.bill.findUnique({
-      where: {
-        userId_billingMonth: {
-          userId,
-          billingMonth,
-        },
+  const existingBill = await prisma.bill.findUnique({
+    where: {
+      userId_billingMonth: {
+        userId,
+        billingMonth,
       },
-    });
+    },
+  });
 
   if (existingBill) {
-    throw new Error(
-      "Bill already exists for this user and billing month",
-    );
+    throw new Error("Bill already exists for this user and billing month");
   }
 
+  const amount = await calculateBillAmount(units);
 
-  const amount =
-    await calculateBillAmount(units);
-
-  const parsedDueDate =
-    parseDueDate(dueDate);
+  const parsedDueDate = parseDueDate(dueDate);
 
   const bill = await prisma.bill.create({
     data: {
@@ -192,41 +160,29 @@ const createBill = async (
     },
   });
 
-  const billPdf =
-    await pdfService.generateBillPdf({
-      billId: bill.id,
+  const billPdf = await pdfService.generateBillPdf({
+    billId: bill.id,
 
-      customerName:
-        bill.user.name,
+    customerName: bill.user.name,
 
-      customerEmail:
-        bill.user.email,
+    customerEmail: bill.user.email,
 
-      meterNumber:
-        bill.meterNumber,
+    meterNumber: bill.meterNumber,
 
-      billingMonth:
-        bill.billingMonth,
+    billingMonth: bill.billingMonth,
 
-      previousReading:
-        bill.previousReading,
+    previousReading: bill.previousReading,
 
-      currentReading:
-        bill.currentReading,
+    currentReading: bill.currentReading,
 
-      units:
-        bill.units,
+    units: bill.units,
 
-      amount:
-        Number(bill.amount),
+    amount: Number(bill.amount),
 
-      dueDate:
-        bill.dueDate,
+    dueDate: bill.dueDate,
 
-      status:
-        bill.status,
-    });
-
+    status: bill.status,
+  });
 
   try {
     await emailService.sendBillEmail(
@@ -236,82 +192,72 @@ const createBill = async (
       billPdf,
     );
 
-    console.log(
-      `Bill PDF email sent successfully to ${bill.user.email}`,
-    );
+    console.log(`Bill PDF email sent successfully to ${bill.user.email}`);
   } catch (error) {
-    console.error(
-      "Failed to send bill PDF email:",
-      error,
-    );
+    console.error("Failed to send bill PDF email:", error);
   }
 
   return bill;
 };
 
 const getAllBills = async () => {
-  const bills =
-    await prisma.bill.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            customerNumber: true,
-            meterNumber: true,
-            address: true,
-            role: true,
-            isActive: true,
-            areaId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+  const bills = await prisma.bill.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          customerNumber: true,
+          meterNumber: true,
+          address: true,
+          role: true,
+          isActive: true,
+          areaId: true,
+          createdAt: true,
+          updatedAt: true,
         },
-
-        payments: true,
       },
 
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+      payments: true,
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return bills;
 };
 
+const getSingleBill = async (id: string) => {
+  const bill = await prisma.bill.findUnique({
+    where: {
+      id,
+    },
 
-const getSingleBill = async (
-  id: string,
-) => {
-  const bill =
-    await prisma.bill.findUnique({
-      where: {
-        id,
-      },
-
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            customerNumber: true,
-            meterNumber: true,
-            address: true,
-            role: true,
-            isActive: true,
-            areaId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          customerNumber: true,
+          meterNumber: true,
+          address: true,
+          role: true,
+          isActive: true,
+          areaId: true,
+          createdAt: true,
+          updatedAt: true,
         },
-
-        payments: true,
       },
-    });
+
+      payments: true,
+    },
+  });
 
   if (!bill) {
     throw new Error("Bill not found");
@@ -320,105 +266,75 @@ const getSingleBill = async (
   return bill;
 };
 
+const getMyBills = async (userId: string) => {
+  const bills = await prisma.bill.findMany({
+    where: {
+      userId,
+    },
 
-const getMyBills = async (
-  userId: string,
-) => {
-  const bills =
-    await prisma.bill.findMany({
-      where: {
-        userId,
-      },
+    include: {
+      payments: true,
+    },
 
-      include: {
-        payments: true,
-      },
-
-      orderBy: {
-        billingMonth: "desc",
-      },
-    });
+    orderBy: {
+      billingMonth: "desc",
+    },
+  });
 
   return bills;
 };
 
-
-const updateBill = async (
-  id: string,
-  payload: IUpdateBill,
-) => {
-  const existingBill =
-    await prisma.bill.findUnique({
-      where: {
-        id,
-      },
-    });
+const updateBill = async (id: string, payload: IUpdateBill) => {
+  const existingBill = await prisma.bill.findUnique({
+    where: {
+      id,
+    },
+  });
 
   if (!existingBill) {
     throw new Error("Bill not found");
   }
 
-
   if (payload.userId !== undefined) {
-    const user =
-      await prisma.user.findUnique({
-        where: {
-          id: payload.userId,
-        },
-      });
+    const user = await prisma.user.findUnique({
+      where: {
+        id: payload.userId,
+      },
+    });
 
     if (!user) {
       throw new Error("User not found");
     }
   }
 
-  if (
-    payload.userId !== undefined ||
-    payload.billingMonth !== undefined
-  ) {
-    const userId =
-      payload.userId ??
-      existingBill.userId;
+  if (payload.userId !== undefined || payload.billingMonth !== undefined) {
+    const userId = payload.userId ?? existingBill.userId;
 
-    const billingMonth =
-      payload.billingMonth ??
-      existingBill.billingMonth;
+    const billingMonth = payload.billingMonth ?? existingBill.billingMonth;
 
-    const duplicateBill =
-      await prisma.bill.findFirst({
-        where: {
-          userId,
-          billingMonth,
+    const duplicateBill = await prisma.bill.findFirst({
+      where: {
+        userId,
+        billingMonth,
 
-          NOT: {
-            id,
-          },
+        NOT: {
+          id,
         },
-      });
+      },
+    });
 
     if (duplicateBill) {
-      throw new Error(
-        "Bill already exists for this user and billing month",
-      );
+      throw new Error("Bill already exists for this user and billing month");
     }
   }
 
-
   const previousReading =
-    payload.previousReading ??
-    existingBill.previousReading;
+    payload.previousReading ?? existingBill.previousReading;
 
-  const currentReading =
-    payload.currentReading ??
-    existingBill.currentReading;
+  const currentReading = payload.currentReading ?? existingBill.currentReading;
 
-  if (
-    previousReading < 0 ||
-    currentReading < 0
-  ) {
-    throw new Error(
-      "Reading cannot be negative",
-    );
+  if (previousReading < 0 || currentReading < 0) {
+    throw new Error("Reading cannot be negative");
   }
 
   if (currentReading < previousReading) {
@@ -427,105 +343,89 @@ const updateBill = async (
     );
   }
 
-  const units =
-    currentReading - previousReading;
+  const units = currentReading - previousReading;
 
-  const amount =
-    await calculateBillAmount(units);
-  let parsedDueDate =
-    existingBill.dueDate;
+  const amount = await calculateBillAmount(units);
+  let parsedDueDate = existingBill.dueDate;
 
   if (payload.dueDate !== undefined) {
-    parsedDueDate =
-      parseDueDate(payload.dueDate);
+    parsedDueDate = parseDueDate(payload.dueDate);
   }
 
-  const bill =
-    await prisma.bill.update({
-      where: {
-        id,
-      },
+  const bill = await prisma.bill.update({
+    where: {
+      id,
+    },
 
-      data: {
-        ...(payload.userId !== undefined && {
-          userId: payload.userId,
-        }),
+    data: {
+      ...(payload.userId !== undefined && {
+        userId: payload.userId,
+      }),
 
-        ...(payload.billingMonth !==
-          undefined && {
-          billingMonth:
-            payload.billingMonth,
-        }),
+      ...(payload.billingMonth !== undefined && {
+        billingMonth: payload.billingMonth,
+      }),
 
-        ...(payload.meterNumber !==
-          undefined && {
-          meterNumber:
-            payload.meterNumber,
-        }),
+      ...(payload.meterNumber !== undefined && {
+        meterNumber: payload.meterNumber,
+      }),
 
-        previousReading,
-        currentReading,
-        units,
-        amount,
+      previousReading,
+      currentReading,
+      units,
+      amount,
 
-        dueDate: parsedDueDate,
+      dueDate: parsedDueDate,
 
-        ...(payload.status !==
-          undefined && {
-          status: payload.status,
-        }),
-      },
+      ...(payload.status !== undefined && {
+        status: payload.status,
+      }),
+    },
 
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            customerNumber: true,
-            meterNumber: true,
-            address: true,
-            role: true,
-            isActive: true,
-            areaId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          customerNumber: true,
+          meterNumber: true,
+          address: true,
+          role: true,
+          isActive: true,
+          areaId: true,
+          createdAt: true,
+          updatedAt: true,
         },
-
-        payments: true,
       },
-    });
+
+      payments: true,
+    },
+  });
 
   return bill;
 };
 
-
-const deleteBill = async (
-  id: string,
-) => {
-  const existingBill =
-    await prisma.bill.findUnique({
-      where: {
-        id,
-      },
-    });
+const deleteBill = async (id: string) => {
+  const existingBill = await prisma.bill.findUnique({
+    where: {
+      id,
+    },
+  });
 
   if (!existingBill) {
     throw new Error("Bill not found");
   }
 
-  const bill =
-    await prisma.bill.delete({
-      where: {
-        id,
-      },
-    });
+  const bill = await prisma.bill.delete({
+    where: {
+      id,
+    },
+  });
 
   return bill;
 };
-
 
 export const billService = {
   createBill,
