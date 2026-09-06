@@ -3,16 +3,25 @@ import { OAuth2Client } from "google-auth-library";
 import type { JwtPayload } from "jsonwebtoken";
 
 import config from "../../config";
+import redis from "../../config/redis";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
+import { sendOTPEmail } from "../../utils/email";
 
 import type { ILoginUser, IRegisterUser } from "./auth.interface";
 
 const googleClient = new OAuth2Client(config.google_client_id);
 
 const registerUser = async (payload: IRegisterUser) => {
-	const { name, email, password, phone, customerNumber, meterNumber, address } =
-		payload;
+	const {
+		name,
+		email,
+		password,
+		phone,
+		customerNumber,
+		meterNumber,
+		address,
+	} = payload;
 
 	const existingUser = await prisma.user.findUnique({
 		where: { email },
@@ -95,7 +104,10 @@ const loginUser = async (payload: ILoginUser) => {
 		throw new Error("This account does not have a password");
 	}
 
-	const isPasswordMatched = await bcrypt.compare(password, user.password);
+	const isPasswordMatched = await bcrypt.compare(
+		password,
+		user.password,
+	);
 
 	if (!isPasswordMatched) {
 		throw new Error("Invalid email or password");
@@ -138,7 +150,12 @@ const googleLogin = async (idToken: string) => {
 		throw new Error("Invalid Google token");
 	}
 
-	const { sub: googleId, email, name, email_verified } = payload;
+	const {
+		sub: googleId,
+		email,
+		name,
+		email_verified,
+	} = payload;
 
 	if (!googleId || !email) {
 		throw new Error("Google account information is incomplete");
@@ -258,6 +275,7 @@ const getMe = async (userId: string) => {
 		where: {
 			id: userId,
 		},
+
 		select: {
 			id: true,
 			name: true,
@@ -281,65 +299,11 @@ const getMe = async (userId: string) => {
 	return user;
 };
 
-const verifyOtp = async (email: string, otp: string) => {
-	const passwordReset = await prisma.passwordReset.findFirst({
-		where: {
-			email,
-			used: false,
-		},
-		orderBy: {
-			createdAt: "desc",
-		},
-	});
 
-	if (!passwordReset) {
-		throw new Error("Invalid OTP");
-	}
-
-	if (passwordReset.expiresAt < new Date()) {
-		throw new Error("OTP has expired");
-	}
-
-	// Compare plain OTP with hashed OTP
-	const isOtpMatched = await bcrypt.compare(otp, passwordReset.otp);
-
-	if (!isOtpMatched) {
-		throw new Error("Invalid OTP");
-	}
-
-	return {
-		message: "OTP verified successfully",
-		resetId: passwordReset.id,
-	};
-};
-
-const resetPassword = async (resetId: string, newPassword: string) => {
-	// Password validation
-	if (!newPassword || newPassword.length < 8) {
-		throw new Error("Password must be at least 8 characters long");
-	}
-
-	const passwordReset = await prisma.passwordReset.findUnique({
-		where: {
-			id: resetId,
-		},
-	});
-
-	if (!passwordReset) {
-		throw new Error("Invalid password reset request");
-	}
-
-	if (passwordReset.used) {
-		throw new Error("Password reset request has already been used");
-	}
-
-	if (passwordReset.expiresAt < new Date()) {
-		throw new Error("Password reset request has expired");
-	}
-
+const forgotPassword = async (email: string) => {
 	const user = await prisma.user.findUnique({
 		where: {
-			email: passwordReset.email,
+			email,
 		},
 	});
 
@@ -347,27 +311,118 @@ const resetPassword = async (resetId: string, newPassword: string) => {
 		throw new Error("User not found");
 	}
 
-	const hashedPassword = await bcrypt.hash(newPassword, 10);
+	// Generate 6 digit OTP
+	const otp = Math.floor(
+		100000 + Math.random() * 900000,
+	).toString();
 
-	await prisma.$transaction([
-		prisma.user.update({
-			where: {
-				id: user.id,
-			},
-			data: {
-				password: hashedPassword,
-			},
-		}),
+	// Redis key
+	const redisKey = `password-reset:${email}`;
 
-		prisma.passwordReset.update({
-			where: {
-				id: passwordReset.id,
-			},
-			data: {
-				used: true,
-			},
-		}),
-	]);
+	// Store OTP in Redis for 2 minutes
+	await redis.set(
+		redisKey,
+		otp,
+		"EX",
+		120,
+	);
+
+	// Send OTP email
+	await sendOTPEmail(email, otp);
+
+	return {
+		email,
+		message:
+			"OTP sent successfully. OTP will expire in 2 minutes.",
+	};
+};
+
+
+
+const verifyOtp = async (
+	email: string,
+	otp: string,
+) => {
+	const redisKey = `password-reset:${email}`;
+
+	// Get OTP from Redis
+	const storedOTP = await redis.get(redisKey);
+
+	if (!storedOTP) {
+		throw new Error("OTP expired or not found");
+	}
+
+	// Compare OTP
+	if (storedOTP !== otp) {
+		throw new Error("Invalid OTP");
+	}
+
+	return {
+		message: "OTP verified successfully",
+		email,
+	};
+};
+
+
+const resetPassword = async (
+	email: string,
+	otp: string,
+	newPassword: string,
+) => {
+	// Password validation
+	if (!newPassword || newPassword.length < 8) {
+		throw new Error(
+			"Password must be at least 8 characters long",
+		);
+	}
+
+	// Find user
+	const user = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
+
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	// Redis key
+	const redisKey = `password-reset:${email}`;
+
+	// Get OTP from Redis
+	const storedOTP = await redis.get(redisKey);
+
+	if (!storedOTP) {
+		throw new Error(
+			"OTP expired or password reset request not found",
+		);
+	}
+
+	// Verify OTP
+	if (storedOTP !== otp) {
+		throw new Error("Invalid OTP");
+	}
+
+	// Hash new password
+	const hashedPassword = await bcrypt.hash(
+		newPassword,
+		10,
+	);
+
+	// Update password
+	await prisma.user.update({
+		where: {
+			id: user.id,
+		},
+
+		data: {
+			password: hashedPassword,
+		},
+	});
+
+	// Delete OTP after successful reset
+	await redis.del(redisKey);
 
 	return {
 		message: "Password reset successfully",
@@ -380,6 +435,7 @@ export const authService = {
 	googleLogin,
 	refreshToken,
 	getMe,
+	forgotPassword,
 	verifyOtp,
 	resetPassword,
 };

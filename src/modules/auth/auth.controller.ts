@@ -54,10 +54,14 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	const { idToken } = req.body;
 
 	if (!idToken) {
-		throw new AppError(httpStatus.BAD_REQUEST, "Google ID token is required");
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Google ID token is required",
+		);
 	}
 
-	const { accessToken, refreshToken } = await authService.googleLogin(idToken);
+	const { accessToken, refreshToken } =
+		await authService.googleLogin(idToken);
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
@@ -151,26 +155,46 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-const verifyOtp = catchAsync(async (req, res) => {
+
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+	const { email } = req.body;
+
+	const result = await authService.forgotPassword(email);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "OTP sent successfully.",
+		data: result,
+	});
+});
+
+
+const verifyOtp = catchAsync(async (req: Request, res: Response) => {
 	const { email, otp } = req.body;
 
 	const result = await authService.verifyOtp(email, otp);
 
 	sendResponse(res, {
-		statusCode: 200,
+		statusCode: httpStatus.OK,
 		success: true,
 		message: "OTP verified successfully",
 		data: result,
 	});
 });
 
-const resetPassword = catchAsync(async (req, res) => {
-	const { resetId, newPassword } = req.body;
 
-	const result = await authService.resetPassword(resetId, newPassword);
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+	const { email, otp, newPassword } = req.body;
+
+	const result = await authService.resetPassword(
+		email,
+		otp,
+		newPassword,
+	);
 
 	sendResponse(res, {
-		statusCode: 200,
+		statusCode: httpStatus.OK,
 		success: true,
 		message: "Password reset successfully",
 		data: result,
@@ -184,6 +208,7 @@ export const authController = {
 	refreshToken,
 	logout,
 	getMe,
+	forgotPassword,
 	verifyOtp,
 	resetPassword,
 };

@@ -16,8 +16,6 @@ import { tariffRoutes } from "./modules/tariff/tariff.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
 import { complaintRoutes } from "./modules/complaint/complaint.route";
 
-// Import auth route later
-// import { authRouter } from "./modules/auth/auth.route";
 
 const app: Application = express();
 

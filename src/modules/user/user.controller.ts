@@ -73,18 +73,18 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-const forgotPassword = catchAsync(async (req, res) => {
-	const { email } = req.body;
+// const forgotPassword = catchAsync(async (req, res) => {
+// 	const { email } = req.body;
 
-	const result = await userService.forgotPassword(email);
+// 	const result = await userService.forgotPassword(email);
 
-	sendResponse(res, {
-		statusCode: httpStatus.OK,
-		success: true,
-		message: "OTP sent successfully.",
-		data: result,
-	});
-});
+// 	sendResponse(res, {
+// 		statusCode: httpStatus.OK,
+// 		success: true,
+// 		message: "OTP sent successfully.",
+// 		data: result,
+// 	});
+// });
 
 const uploadProfileImage = async (req: Request, res: Response) => {
 	try {
@@ -121,6 +121,6 @@ export const userController = {
 	updateUser,
 	updateUserRole,
 	updateUserStatus,
-	forgotPassword,
+	// forgotPassword,
 	uploadProfileImage,
 };

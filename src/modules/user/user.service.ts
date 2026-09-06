@@ -335,55 +335,55 @@ const updateUserStatusIntoDB = async (id: string, isActive: boolean) => {
 	return result;
 };
 
-const forgotPassword = async (email: string) => {
-	const user = await prisma.user.findUnique({
-		where: {
-			email,
-		},
-	});
+// const forgotPassword = async (email: string) => {
+// 	const user = await prisma.user.findUnique({
+// 		where: {
+// 			email,
+// 		},
+// 	});
 
-	if (!user) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not found.");
-	}
+// 	if (!user) {
+// 		throw new AppError(httpStatus.NOT_FOUND, "User not found.");
+// 	}
 
-	// Generate 6 digit OTP
-	const otp = Math.floor(100000 + Math.random() * 900000).toString();
+// 	// Generate 6 digit OTP
+// 	const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-	// Hash OTP
-	const hashedOTP = await bcrypt.hash(otp, 10);
+// 	// Hash OTP
+// 	const hashedOTP = await bcrypt.hash(otp, 10);
 
-	// OTP expires in 2 minutes
-	const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+// 	// OTP expires in 2 minutes
+// 	const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
 
-	// Invalidate previous OTPs
-	await prisma.passwordReset.updateMany({
-		where: {
-			email,
-			used: false,
-		},
+// 	// Invalidate previous OTPs
+// 	await prisma.passwordReset.updateMany({
+// 		where: {
+// 			email,
+// 			used: false,
+// 		},
 
-		data: {
-			used: true,
-		},
-	});
+// 		data: {
+// 			used: true,
+// 		},
+// 	});
 
-	// Create new OTP
-	await prisma.passwordReset.create({
-		data: {
-			email,
-			otp: hashedOTP,
-			expiresAt,
-		},
-	});
+// 	// Create new OTP
+// 	await prisma.passwordReset.create({
+// 		data: {
+// 			email,
+// 			otp: hashedOTP,
+// 			expiresAt,
+// 		},
+// 	});
 
-	// Send OTP
-	await sendOTPEmail(email, otp);
+// 	// Send OTP
+// 	await sendOTPEmail(email, otp);
 
-	return {
-		email,
-		message: "OTP sent successfully. OTP will expire in 2 minutes.",
-	};
-};
+// 	return {
+// 		email,
+// 		message: "OTP sent successfully. OTP will expire in 2 minutes.",
+// 	};
+// };
 
 const uploadProfileImage = async (
 	userId: string,
@@ -445,6 +445,6 @@ export const userService = {
 	updateUserRoleIntoDB,
 	getAllUsersFromDB,
 	updateUserStatusIntoDB,
-	forgotPassword,
+	// forgotPassword,
 	uploadProfileImage,
 };

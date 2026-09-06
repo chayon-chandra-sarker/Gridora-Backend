@@ -25,6 +25,7 @@ export default {
 	cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
 	cloudinary_api_key: process.env.CLOUDINARY_API_KEY!,
 	cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET!,
+	redis_url: process.env.REDIS_URL!,
 
 	jwt_access_expires_in: (process.env.JWT_ACCESS_EXPIRES_IN ||
 		"1d") as NonNullable<SignOptions["expiresIn"]>,
