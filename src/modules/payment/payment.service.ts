@@ -1,3 +1,4 @@
+import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 
 import type { ICreatePayment, IUpdatePayment } from "./payment.interface";
@@ -21,7 +22,7 @@ const createPayment = async (payload: ICreatePayment) => {
 	const { userId, billId, amount, method, transactionId, paymentId } = payload;
 
 	if (amount <= 0) {
-		throw new Error("Payment amount must be greater than 0");
+		throw new AppError(400, "Payment amount must be greater than 0");
 	}
 
 	const user = await prisma.user.findUnique({
@@ -31,7 +32,7 @@ const createPayment = async (payload: ICreatePayment) => {
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new AppError(404, "User not found");
 	}
 
 	const bill = await prisma.bill.findUnique({
@@ -41,19 +42,19 @@ const createPayment = async (payload: ICreatePayment) => {
 	});
 
 	if (!bill) {
-		throw new Error("Bill not found");
+		throw new AppError(404, "Bill not found");
 	}
 
 	if (bill.userId !== userId) {
-		throw new Error("This bill does not belong to this user");
+		throw new AppError(403, "This bill does not belong to this user");
 	}
 
 	if (bill.status === "PAID") {
-		throw new Error("This bill has already been paid");
+		throw new AppError(409, "This bill has already been paid");
 	}
 
 	if (Number(bill.amount) !== amount) {
-		throw new Error("Payment amount must match the bill amount");
+		throw new AppError(400, "Payment amount must match the bill amount");
 	}
 
 	const existingPayment = await prisma.payment.findFirst({
@@ -66,7 +67,7 @@ const createPayment = async (payload: ICreatePayment) => {
 	});
 
 	if (existingPayment) {
-		throw new Error("A payment already exists for this bill");
+		throw new AppError(409, "A payment already exists for this bill");
 	}
 
 	if (transactionId) {
@@ -77,7 +78,7 @@ const createPayment = async (payload: ICreatePayment) => {
 		});
 
 		if (existingTransaction) {
-			throw new Error("Transaction ID already exists");
+			throw new AppError(409, "Transaction ID already exists");
 		}
 	}
 
@@ -89,7 +90,7 @@ const createPayment = async (payload: ICreatePayment) => {
 		});
 
 		if (existingPaymentId) {
-			throw new Error("Payment ID already exists");
+			throw new AppError(409, "Payment ID already exists");
 		}
 	}
 
@@ -156,7 +157,7 @@ const getSinglePayment = async (id: string) => {
 	});
 
 	if (!payment) {
-		throw new Error("Payment not found");
+		throw new AppError(404, "Payment not found");
 	}
 
 	return payment;
@@ -192,18 +193,18 @@ const updatePayment = async (id: string, payload: IUpdatePayment) => {
 	});
 
 	if (!existingPayment) {
-		throw new Error("Payment not found");
+		throw new AppError(404, "Payment not found");
 	}
 
 	if (payload.amount !== undefined && payload.amount <= 0) {
-		throw new Error("Payment amount must be greater than 0");
+		throw new AppError(400, "Payment amount must be greater than 0");
 	}
 
 	if (
 		payload.amount !== undefined &&
 		payload.amount !== Number(existingPayment.bill.amount)
 	) {
-		throw new Error("Payment amount must match the bill amount");
+		throw new AppError(400, "Payment amount must match the bill amount");
 	}
 
 	if (
@@ -217,7 +218,7 @@ const updatePayment = async (id: string, payload: IUpdatePayment) => {
 		});
 
 		if (existingTransaction) {
-			throw new Error("Transaction ID already exists");
+			throw new AppError(409, "Transaction ID already exists");
 		}
 	}
 
@@ -232,7 +233,7 @@ const updatePayment = async (id: string, payload: IUpdatePayment) => {
 		});
 
 		if (existingPaymentId) {
-			throw new Error("Payment ID already exists");
+			throw new AppError(409, "Payment ID already exists");
 		}
 	}
 
@@ -313,7 +314,7 @@ const deletePayment = async (id: string) => {
 	});
 
 	if (!existingPayment) {
-		throw new Error("Payment not found");
+		throw new AppError(404, "Payment not found");
 	}
 
 	const deletedPayment = await prisma.payment.delete({

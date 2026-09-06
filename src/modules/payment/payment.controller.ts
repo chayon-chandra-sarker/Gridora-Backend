@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { paymentService } from "./payment.service";
 import { createBkashPayment, executeBkashPayment } from "./bkash.service";
 
+import AppError from "../../errors/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -35,7 +36,7 @@ const getSinglePayment = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid payment id");
+		throw new AppError(400, "Invalid payment id");
 	}
 
 	const result = await paymentService.getSinglePayment(id);
@@ -52,7 +53,7 @@ const getMyPayments = catchAsync(async (req: Request, res: Response) => {
 	const userId = req.user?.id;
 
 	if (!userId) {
-		throw new Error("User not authenticated");
+		throw new AppError(401, "User not authenticated");
 	}
 
 	const result = await paymentService.getMyPayments(userId);
@@ -69,7 +70,7 @@ const updatePayment = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid payment id");
+		throw new AppError(400, "Invalid payment id");
 	}
 
 	const result = await paymentService.updatePayment(id, req.body);
@@ -86,7 +87,7 @@ const deletePayment = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid payment id");
+		throw new AppError(400, "Invalid payment id");
 	}
 
 	const result = await paymentService.deletePayment(id);
@@ -103,13 +104,13 @@ const createPaymentBkash = catchAsync(async (req: Request, res: Response) => {
 	const userId = req.user?.id;
 
 	if (!userId) {
-		throw new Error("User not authenticated");
+		throw new AppError(401, "User not authenticated");
 	}
 
 	const { billId } = req.body;
 
 	if (!billId) {
-		throw new Error("Bill ID is required");
+		throw new AppError(400, "Bill ID is required");
 	}
 
 	const result = await createBkashPayment(userId, billId);
@@ -124,15 +125,14 @@ const createPaymentBkash = catchAsync(async (req: Request, res: Response) => {
 
 const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 	const paymentID = req.query.paymentID;
-
 	const status = req.query.status;
 
 	if (typeof paymentID !== "string" || !paymentID) {
-		throw new Error("Invalid bKash payment ID");
+		throw new AppError(400, "Invalid bKash payment ID");
 	}
 
 	if (typeof status !== "string" || !status) {
-		throw new Error("Invalid bKash payment status");
+		throw new AppError(400, "Invalid bKash payment status");
 	}
 
 	if (status === "success") {
@@ -164,7 +164,7 @@ const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 		});
 	}
 
-	throw new Error("Invalid bKash payment status");
+	throw new AppError(400, "Invalid bKash payment status");
 });
 
 export const paymentController = {

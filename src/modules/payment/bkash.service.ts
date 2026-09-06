@@ -1,12 +1,13 @@
 import config from "../../config";
+import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 
+import { emailService } from "../email/email.service";
 import { paymentService } from "../payment/payment.service";
 import { pdfService } from "../pdf/pdf.service";
-import { emailService } from "../email/email.service";
 
 export const getBkashIdToken = async () => {
-	const url = `${config.bkash_base_url}` + `/tokenized/checkout/token/grant`;
+	const url = `${config.bkash_base_url}/tokenized/checkout/token/grant`;
 
 	try {
 		console.log("bKash Token URL:", url);
@@ -32,8 +33,11 @@ export const getBkashIdToken = async () => {
 		if (!response.ok) {
 			console.error("bKash token response:", result);
 
-			throw new Error(
-				result?.statusMessage || result?.message || "Failed to get bKash token",
+			throw new AppError(
+				502,
+				result?.statusMessage ||
+					result?.message ||
+					"Failed to get bKash token",
 			);
 		}
 
@@ -41,15 +45,25 @@ export const getBkashIdToken = async () => {
 	} catch (error) {
 		console.error("bKash token request failed:", error);
 
-		if (error instanceof Error) {
-			throw new Error(`bKash connection failed: ${error.message}`);
+		if (error instanceof AppError) {
+			throw error;
 		}
 
-		throw new Error("Failed to connect to bKash");
+		if (error instanceof Error) {
+			throw new AppError(
+				502,
+				`bKash connection failed: ${error.message}`,
+			);
+		}
+
+		throw new AppError(502, "Failed to connect to bKash");
 	}
 };
 
-export const createBkashPayment = async (userId: string, billId: string) => {
+export const createBkashPayment = async (
+	userId: string,
+	billId: string,
+) => {
 	const bill = await prisma.bill.findUnique({
 		where: {
 			id: billId,
@@ -57,15 +71,15 @@ export const createBkashPayment = async (userId: string, billId: string) => {
 	});
 
 	if (!bill) {
-		throw new Error("Bill not found");
+		throw new AppError(404, "Bill not found");
 	}
 
 	if (bill.userId !== userId) {
-		throw new Error("This bill does not belong to you");
+		throw new AppError(403, "This bill does not belong to you");
 	}
 
 	if (bill.status === "PAID") {
-		throw new Error("This bill has already been paid");
+		throw new AppError(409, "This bill has already been paid");
 	}
 
 	const tokenResponse = await getBkashIdToken();
@@ -73,7 +87,7 @@ export const createBkashPayment = async (userId: string, billId: string) => {
 	const idToken = tokenResponse?.id_token;
 
 	if (!idToken) {
-		throw new Error("Failed to get bKash ID token");
+		throw new AppError(502, "Failed to get bKash ID token");
 	}
 
 	const response = await fetch(
@@ -93,7 +107,7 @@ export const createBkashPayment = async (userId: string, billId: string) => {
 
 				payerReference: userId,
 
-				callbackURL: `${config.app_url}` + `/api/payments/bkash/callback`,
+				callbackURL: `${config.app_url}/api/payments/bkash/callback`,
 
 				amount: Number(bill.amount).toFixed(2),
 
@@ -109,11 +123,14 @@ export const createBkashPayment = async (userId: string, billId: string) => {
 	const result = await response.json();
 
 	if (!response.ok) {
-		throw new Error(result?.statusMessage || "Failed to create bKash payment");
+		throw new AppError(
+			502,
+			result?.statusMessage || "Failed to create bKash payment",
+		);
 	}
 
 	if (!result?.paymentID) {
-		throw new Error("bKash payment ID not found");
+		throw new AppError(502, "bKash payment ID not found");
 	}
 
 	const payment = await paymentService.createPayment({
@@ -136,7 +153,7 @@ export const executeBkashPayment = async (paymentID: string) => {
 	const idToken = tokenResponse?.id_token;
 
 	if (!idToken) {
-		throw new Error("Failed to get bKash ID token");
+		throw new AppError(502, "Failed to get bKash ID token");
 	}
 
 	const response = await fetch(
@@ -160,7 +177,10 @@ export const executeBkashPayment = async (paymentID: string) => {
 	const result = await response.json();
 
 	if (!response.ok) {
-		throw new Error(result?.statusMessage || "Failed to execute bKash payment");
+		throw new AppError(
+			502,
+			result?.statusMessage || "Failed to execute bKash payment",
+		);
 	}
 
 	// Find payment
@@ -171,24 +191,27 @@ export const executeBkashPayment = async (paymentID: string) => {
 	});
 
 	if (!payment) {
-		throw new Error("Payment record not found for this bKash payment");
+		throw new AppError(
+			404,
+			"Payment record not found for this bKash payment",
+		);
 	}
 
-	// ========================================
 	// Check payment status
-	// ========================================
 
 	const isSuccessful =
-		result?.transactionStatus === "Completed" && result?.statusCode === "0000";
+		result?.transactionStatus === "Completed" &&
+		result?.statusCode === "0000";
 
-	// ========================================
 	// Failed Payment
-	// ========================================
-
+	
 	if (!isSuccessful) {
-		const failedPayment = await paymentService.updatePayment(payment.id, {
-			status: "FAILED",
-		});
+		const failedPayment = await paymentService.updatePayment(
+			payment.id,
+			{
+				status: "FAILED",
+			},
+		);
 
 		return {
 			success: false,
@@ -197,23 +220,23 @@ export const executeBkashPayment = async (paymentID: string) => {
 		};
 	}
 
-	// ========================================
 	// Successful Payment
-	// ========================================
 
-	const updatedPayment = await paymentService.updatePayment(payment.id, {
-		status: "SUCCESS",
-		transactionId: result.trxID,
-	});
+	const updatedPayment = await paymentService.updatePayment(
+		payment.id,
+		{
+			status: "SUCCESS",
+			transactionId: result.trxID,
+		},
+	);
 
-	// ========================================
 	// Get Customer + Bill Information
-	// ========================================
 
 	const paymentDetails = await prisma.payment.findUnique({
 		where: {
 			id: updatedPayment.id,
 		},
+
 		include: {
 			user: true,
 			bill: true,
@@ -221,12 +244,10 @@ export const executeBkashPayment = async (paymentID: string) => {
 	});
 
 	if (!paymentDetails) {
-		throw new Error("Payment details not found");
+		throw new AppError(404, "Payment details not found");
 	}
 
-	// ========================================
 	// Generate Invoice PDF
-	// ========================================
 
 	const invoiceNumber = `INV-${paymentDetails.bill.id}`;
 
@@ -254,10 +275,7 @@ export const executeBkashPayment = async (paymentID: string) => {
 		status: paymentDetails.status,
 	});
 
-	// ========================================
 	// Send Invoice Email
-	// ========================================
-
 	try {
 		await emailService.sendPaymentInvoiceEmail(
 			paymentDetails.user.email,

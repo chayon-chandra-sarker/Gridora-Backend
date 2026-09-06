@@ -29,7 +29,7 @@ const registerUser = async (payload: IRegisterUser) => {
 	});
 
 	if (existingUser) {
-		throw new Error("User with this email already exists");
+		throw new AppError(409, "User with this email already exists");
 	}
 
 	if (customerNumber) {
@@ -38,7 +38,7 @@ const registerUser = async (payload: IRegisterUser) => {
 		});
 
 		if (existingCustomerNumber) {
-			throw new Error("Customer number already exists");
+			throw new AppError(409, "Customer number already exists");
 		}
 	}
 
@@ -48,7 +48,7 @@ const registerUser = async (payload: IRegisterUser) => {
 		});
 
 		if (existingMeterNumber) {
-			throw new Error("Meter number already exists");
+			throw new AppError(409, "Meter number already exists");
 		}
 	}
 
@@ -102,10 +102,7 @@ const loginUser = async (payload: ILoginUser) => {
 	}
 
 	if (!user.password) {
-		throw new AppError(
-			400,
-			"This account does not have a password",
-		);
+		throw new AppError(400, "This account does not have a password");
 	}
 
 	const isPasswordMatched = await bcrypt.compare(
@@ -151,7 +148,7 @@ const googleLogin = async (idToken: string) => {
 	const payload = ticket.getPayload();
 
 	if (!payload) {
-		throw new Error("Invalid Google token");
+		throw new AppError(401, "Invalid Google token");
 	}
 
 	const {
@@ -162,11 +159,14 @@ const googleLogin = async (idToken: string) => {
 	} = payload;
 
 	if (!googleId || !email) {
-		throw new Error("Google account information is incomplete");
+		throw new AppError(
+			400,
+			"Google account information is incomplete",
+		);
 	}
 
 	if (!email_verified) {
-		throw new Error("Google email is not verified");
+		throw new AppError(401, "Google email is not verified");
 	}
 
 	// Check user by Google ID
@@ -187,7 +187,7 @@ const googleLogin = async (idToken: string) => {
 		// Existing email/password user -> link Google account
 		if (user) {
 			if (!user.isActive) {
-				throw new Error("Your account is inactive");
+				throw new AppError(403, "Your account is inactive");
 			}
 
 			if (!user.googleId) {
@@ -217,7 +217,7 @@ const googleLogin = async (idToken: string) => {
 	}
 
 	if (!user.isActive) {
-		throw new Error("Your account is inactive");
+		throw new AppError(403, "Your account is inactive");
 	}
 
 	const jwtPayload = {
@@ -297,12 +297,11 @@ const getMe = async (userId: string) => {
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new AppError(404, "User not found");
 	}
 
 	return user;
 };
-
 
 const forgotPassword = async (email: string) => {
 	const user = await prisma.user.findUnique({
@@ -312,7 +311,7 @@ const forgotPassword = async (email: string) => {
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new AppError(404, "User not found");
 	}
 
 	// Generate 6 digit OTP
@@ -341,8 +340,6 @@ const forgotPassword = async (email: string) => {
 	};
 };
 
-
-
 const verifyOtp = async (
 	email: string,
 	otp: string,
@@ -353,12 +350,12 @@ const verifyOtp = async (
 	const storedOTP = await redis.get(redisKey);
 
 	if (!storedOTP) {
-		throw new Error("OTP expired or not found");
+		throw new AppError(400, "OTP expired or not found");
 	}
 
 	// Compare OTP
 	if (storedOTP !== otp) {
-		throw new Error("Invalid OTP");
+		throw new AppError(400, "Invalid OTP");
 	}
 
 	return {
@@ -367,7 +364,6 @@ const verifyOtp = async (
 	};
 };
 
-
 const resetPassword = async (
 	email: string,
 	otp: string,
@@ -375,7 +371,8 @@ const resetPassword = async (
 ) => {
 	// Password validation
 	if (!newPassword || newPassword.length < 8) {
-		throw new Error(
+		throw new AppError(
+			400,
 			"Password must be at least 8 characters long",
 		);
 	}
@@ -388,7 +385,7 @@ const resetPassword = async (
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new AppError(404, "User not found");
 	}
 
 	// Redis key
@@ -398,14 +395,15 @@ const resetPassword = async (
 	const storedOTP = await redis.get(redisKey);
 
 	if (!storedOTP) {
-		throw new Error(
+		throw new AppError(
+			400,
 			"OTP expired or password reset request not found",
 		);
 	}
 
 	// Verify OTP
 	if (storedOTP !== otp) {
-		throw new Error("Invalid OTP");
+		throw new AppError(400, "Invalid OTP");
 	}
 
 	// Hash new password

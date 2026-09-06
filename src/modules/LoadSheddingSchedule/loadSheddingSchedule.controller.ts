@@ -1,14 +1,16 @@
 import type { Request, Response } from "express";
 
 import { loadSheddingScheduleService } from "./loadSheddingSchedule.service";
+import AppError from "../../errors/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
 const createLoadSheddingSchedule = catchAsync(
 	async (req: Request, res: Response) => {
-		const result = await loadSheddingScheduleService.createLoadSheddingSchedule(
-			req.body,
-		);
+		const result =
+			await loadSheddingScheduleService.createLoadSheddingSchedule(
+				req.body,
+			);
 
 		sendResponse(res, {
 			statusCode: 201,
@@ -38,7 +40,7 @@ const getSingleLoadSheddingSchedule = catchAsync(
 		const { id } = req.params;
 
 		if (!id || Array.isArray(id)) {
-			throw new Error("Invalid schedule id");
+			throw new AppError(400, "Invalid schedule id");
 		}
 
 		const result =
@@ -58,13 +60,14 @@ const updateLoadSheddingSchedule = catchAsync(
 		const { id } = req.params;
 
 		if (!id || Array.isArray(id)) {
-			throw new Error("Invalid schedule id");
+			throw new AppError(400, "Invalid schedule id");
 		}
 
-		const result = await loadSheddingScheduleService.updateLoadSheddingSchedule(
-			id,
-			req.body,
-		);
+		const result =
+			await loadSheddingScheduleService.updateLoadSheddingSchedule(
+				id,
+				req.body,
+			);
 
 		sendResponse(res, {
 			statusCode: 200,
@@ -80,7 +83,7 @@ const deleteLoadSheddingSchedule = catchAsync(
 		const { id } = req.params;
 
 		if (!id || Array.isArray(id)) {
-			throw new Error("Invalid schedule id");
+			throw new AppError(400, "Invalid schedule id");
 		}
 
 		const result =

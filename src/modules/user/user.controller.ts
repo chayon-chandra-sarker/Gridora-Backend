@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import httpStatus from "http-status";
+
 import { userService } from "./user.service";
+
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -73,47 +75,24 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-// const forgotPassword = catchAsync(async (req, res) => {
-// 	const { email } = req.body;
+const uploadProfileImage = catchAsync(async (req: Request, res: Response) => {
+	const userId = req.user!.id;
 
-// 	const result = await userService.forgotPassword(email);
-
-// 	sendResponse(res, {
-// 		statusCode: httpStatus.OK,
-// 		success: true,
-// 		message: "OTP sent successfully.",
-// 		data: result,
-// 	});
-// });
-
-const uploadProfileImage = async (req: Request, res: Response) => {
-	try {
-		const userId = req.user!.id;
-
-		if (!req.file) {
-			return res.status(400).json({
-				success: false,
-				message: "Please upload an image",
-			});
-		}
-
-		const result = await userService.uploadProfileImage(userId, req.file);
-
-		return res.status(200).json({
-			success: true,
-			message: "Profile image uploaded successfully",
-			data: result,
-		});
-	} catch (error) {
-		return res.status(500).json({
+	if (!req.file) {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			success: false,
-			message:
-				error instanceof Error
-					? error.message
-					: "Failed to upload profile image",
+			message: "Please upload an image",
 		});
 	}
-};
+
+	const result = await userService.uploadProfileImage(userId, req.file);
+
+	return res.status(httpStatus.OK).json({
+		success: true,
+		message: "Profile image uploaded successfully",
+		data: result,
+	});
+});
 
 export const userController = {
 	updateMyProfile,
@@ -121,6 +100,5 @@ export const userController = {
 	updateUser,
 	updateUserRole,
 	updateUserStatus,
-	// forgotPassword,
 	uploadProfileImage,
 };

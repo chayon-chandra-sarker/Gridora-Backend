@@ -1,3 +1,4 @@
+import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 import type {
 	ICreateLoadSheddingSchedule,
@@ -10,7 +11,10 @@ const parseDateTime = (dateTime: string): Date => {
 	);
 
 	if (!match) {
-		throw new Error("Invalid date time format. Use YYYY.MM.DD, HH.MM AM/PM");
+		throw new AppError(
+			400,
+			"Invalid date time format. Use YYYY.MM.DD, HH.MM AM/PM",
+		);
 	}
 
 	const year = match[1];
@@ -28,7 +32,7 @@ const parseDateTime = (dateTime: string): Date => {
 		minute === undefined ||
 		period === undefined
 	) {
-		throw new Error("Invalid date time");
+		throw new AppError(400, "Invalid date time");
 	}
 
 	const monthNumber = Number(month);
@@ -37,19 +41,19 @@ const parseDateTime = (dateTime: string): Date => {
 	const minuteNumber = Number(minute);
 
 	if (monthNumber < 1 || monthNumber > 12) {
-		throw new Error("Invalid month");
+		throw new AppError(400, "Invalid month");
 	}
 
 	if (dayNumber < 1 || dayNumber > 31) {
-		throw new Error("Invalid day");
+		throw new AppError(400, "Invalid day");
 	}
 
 	if (hourNumber < 1 || hourNumber > 12) {
-		throw new Error("Invalid hour");
+		throw new AppError(400, "Invalid hour");
 	}
 
 	if (minuteNumber < 0 || minuteNumber > 59) {
-		throw new Error("Invalid minute");
+		throw new AppError(400, "Invalid minute");
 	}
 
 	const upperPeriod = period.toUpperCase();
@@ -77,7 +81,7 @@ const parseDateTime = (dateTime: string): Date => {
 		result.getMonth() !== monthNumber - 1 ||
 		result.getDate() !== dayNumber
 	) {
-		throw new Error("Invalid date");
+		throw new AppError(400, "Invalid date");
 	}
 
 	return result;
@@ -112,7 +116,7 @@ const createLoadSheddingSchedule = async (
 	const parsedEndTime = parseDateTime(endTime);
 
 	if (parsedStartTime >= parsedEndTime) {
-		throw new Error("End time must be after start time");
+		throw new AppError(400, "End time must be after start time");
 	}
 
 	const area = await prisma.area.findUnique({
@@ -122,7 +126,7 @@ const createLoadSheddingSchedule = async (
 	});
 
 	if (!area) {
-		throw new Error("Area not found");
+		throw new AppError(404, "Area not found");
 	}
 
 	const schedule = await prisma.loadSheddingSchedule.create({
@@ -170,7 +174,7 @@ const getSingleLoadSheddingSchedule = async (id: string) => {
 	});
 
 	if (!schedule) {
-		throw new Error("Load shedding schedule not found");
+		throw new AppError(404, "Load shedding schedule not found");
 	}
 
 	return {
@@ -191,7 +195,7 @@ const updateLoadSheddingSchedule = async (
 	});
 
 	if (!existingSchedule) {
-		throw new Error("Load shedding schedule not found");
+		throw new AppError(404, "Load shedding schedule not found");
 	}
 
 	let parsedStartTime = existingSchedule.startTime;
@@ -206,7 +210,7 @@ const updateLoadSheddingSchedule = async (
 	}
 
 	if (parsedStartTime >= parsedEndTime) {
-		throw new Error("End time must be after start time");
+		throw new AppError(400, "End time must be after start time");
 	}
 
 	if (payload.areaId !== undefined) {
@@ -217,7 +221,7 @@ const updateLoadSheddingSchedule = async (
 		});
 
 		if (!area) {
-			throw new Error("Area not found");
+			throw new AppError(404, "Area not found");
 		}
 	}
 
@@ -263,7 +267,7 @@ const deleteLoadSheddingSchedule = async (id: string) => {
 	});
 
 	if (!existingSchedule) {
-		throw new Error("Load shedding schedule not found");
+		throw new AppError(404, "Load shedding schedule not found");
 	}
 
 	const schedule = await prisma.loadSheddingSchedule.delete({

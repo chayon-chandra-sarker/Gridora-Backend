@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import AppError from "../../errors/AppError";
 import type { ICreateArea, IUpdateArea } from "./area.interface";
 
 const createArea = async (payload: ICreateArea) => {
@@ -13,7 +14,7 @@ const createArea = async (payload: ICreateArea) => {
 	});
 
 	if (existingArea) {
-		throw new Error("Area already exists");
+		throw new AppError(409, "Area already exists");
 	}
 
 	const area = await prisma.area.create({
@@ -45,7 +46,7 @@ const getSingleArea = async (id: string) => {
 	});
 
 	if (!area) {
-		throw new Error("Area not found");
+		throw new AppError(404, "Area not found");
 	}
 
 	return area;
@@ -59,7 +60,7 @@ const updateArea = async (id: string, payload: IUpdateArea) => {
 	});
 
 	if (!existingArea) {
-		throw new Error("Area not found");
+		throw new AppError(404, "Area not found");
 	}
 
 	const area = await prisma.area.update({
@@ -80,7 +81,7 @@ const deleteArea = async (id: string) => {
 	});
 
 	if (!existingArea) {
-		throw new Error("Area not found");
+		throw new AppError(404, "Area not found");
 	}
 
 	const area = await prisma.area.delete({

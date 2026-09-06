@@ -1,16 +1,15 @@
 import type { Request, Response } from "express";
 
 import { complaintService } from "./complaint.service";
-
+import AppError from "../../errors/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-
 
 const createComplaint = catchAsync(async (req: Request, res: Response) => {
 	const userId = req.user?.id;
 
 	if (!userId) {
-		throw new Error("User not authenticated");
+		throw new AppError(401, "User not authenticated");
 	}
 
 	const result = await complaintService.createComplaint(userId, req.body);
@@ -23,7 +22,6 @@ const createComplaint = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const getAllComplaints = catchAsync(async (_req: Request, res: Response) => {
 	const result = await complaintService.getAllComplaints();
 
@@ -35,12 +33,11 @@ const getAllComplaints = catchAsync(async (_req: Request, res: Response) => {
 	});
 });
 
-
 const getSingleComplaint = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid complaint id");
+		throw new AppError(400, "Invalid complaint id");
 	}
 
 	const result = await complaintService.getSingleComplaint(id);
@@ -53,12 +50,11 @@ const getSingleComplaint = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const getMyComplaints = catchAsync(async (req: Request, res: Response) => {
 	const userId = req.user?.id;
 
 	if (!userId) {
-		throw new Error("User not authenticated");
+		throw new AppError(401, "User not authenticated");
 	}
 
 	const result = await complaintService.getMyComplaints(userId);
@@ -71,12 +67,11 @@ const getMyComplaints = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const updateComplaint = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid complaint id");
+		throw new AppError(400, "Invalid complaint id");
 	}
 
 	const result = await complaintService.updateComplaint(id, req.body);
@@ -89,12 +84,11 @@ const updateComplaint = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const deleteComplaint = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid complaint id");
+		throw new AppError(400, "Invalid complaint id");
 	}
 
 	const result = await complaintService.deleteComplaint(id);

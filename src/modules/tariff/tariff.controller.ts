@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { tariffService } from "./tariff.service";
+import AppError from "../../errors/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -30,7 +31,7 @@ const getSingleTariff = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid tariff id");
+		throw new AppError(400, "Invalid tariff id");
 	}
 
 	const result = await tariffService.getSingleTariff(id);
@@ -58,7 +59,7 @@ const updateTariff = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid tariff id");
+		throw new AppError(400, "Invalid tariff id");
 	}
 
 	const result = await tariffService.updateTariff(id, req.body);
@@ -75,7 +76,7 @@ const deleteTariff = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid tariff id");
+		throw new AppError(400, "Invalid tariff id");
 	}
 
 	const result = await tariffService.deleteTariff(id);

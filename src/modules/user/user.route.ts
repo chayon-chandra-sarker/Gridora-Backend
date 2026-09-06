@@ -36,6 +36,5 @@ router.put(
 	userController.updateUserStatus,
 );
 
-// router.post("/forgot-password", userController.forgotPassword);
 
 export const userRouter = router;

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { areaService } from "./area.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import AppError from "../../errors/AppError";
 
 const createArea = catchAsync(async (req: Request, res: Response) => {
 	const result = await areaService.createArea(req.body);
@@ -30,7 +31,7 @@ const getSingleArea = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid area id");
+		throw new AppError(400, "Invalid area id");
 	}
 
 	const result = await areaService.getSingleArea(id);
@@ -47,7 +48,7 @@ const updateArea = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid area id");
+		throw new AppError(400, "Invalid area id");
 	}
 
 	const result = await areaService.updateArea(id, req.body);
@@ -64,7 +65,7 @@ const deleteArea = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid area id");
+		throw new AppError(400, "Invalid area id");
 	}
 
 	const result = await areaService.deleteArea(id);

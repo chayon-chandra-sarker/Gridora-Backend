@@ -1,3 +1,4 @@
+import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 
 import type { ICreateTariff, IUpdateTariff } from "./tariff.interface";
@@ -7,16 +8,17 @@ const createTariff = async (payload: ICreateTariff) => {
 
 	// Validate units
 	if (minUnit < 0) {
-		throw new Error("Minimum unit cannot be negative");
+		throw new AppError(400, "Minimum unit cannot be negative");
 	}
 
 	if (maxUnit !== undefined && maxUnit !== null) {
 		if (maxUnit < 0) {
-			throw new Error("Maximum unit cannot be negative");
+			throw new AppError(400, "Maximum unit cannot be negative");
 		}
 
 		if (maxUnit < minUnit) {
-			throw new Error(
+			throw new AppError(
+				400,
 				"Maximum unit must be greater than or equal to minimum unit",
 			);
 		}
@@ -24,7 +26,7 @@ const createTariff = async (payload: ICreateTariff) => {
 
 	// Validate price
 	if (pricePerUnit < 0) {
-		throw new Error("Price per unit cannot be negative");
+		throw new AppError(400, "Price per unit cannot be negative");
 	}
 
 	// Check overlapping tariff range
@@ -53,7 +55,10 @@ const createTariff = async (payload: ICreateTariff) => {
 	});
 
 	if (overlappingTariff) {
-		throw new Error("Tariff unit range overlaps with an existing tariff");
+		throw new AppError(
+			409,
+			"Tariff unit range overlaps with an existing tariff",
+		);
 	}
 
 	const tariff = await prisma.tariff.create({
@@ -88,7 +93,7 @@ const getSingleTariff = async (id: string) => {
 	});
 
 	if (!tariff) {
-		throw new Error("Tariff not found");
+		throw new AppError(404, "Tariff not found");
 	}
 
 	return tariff;
@@ -115,7 +120,7 @@ const updateTariff = async (id: string, payload: IUpdateTariff) => {
 	});
 
 	if (!existingTariff) {
-		throw new Error("Tariff not found");
+		throw new AppError(404, "Tariff not found");
 	}
 
 	const minUnit = payload.minUnit ?? existingTariff.minUnit;
@@ -128,16 +133,17 @@ const updateTariff = async (id: string, payload: IUpdateTariff) => {
 
 	// Validate units
 	if (minUnit < 0) {
-		throw new Error("Minimum unit cannot be negative");
+		throw new AppError(400, "Minimum unit cannot be negative");
 	}
 
 	if (maxUnit !== null && maxUnit !== undefined) {
 		if (maxUnit < 0) {
-			throw new Error("Maximum unit cannot be negative");
+			throw new AppError(400, "Maximum unit cannot be negative");
 		}
 
 		if (maxUnit < minUnit) {
-			throw new Error(
+			throw new AppError(
+				400,
 				"Maximum unit must be greater than or equal to minimum unit",
 			);
 		}
@@ -145,7 +151,7 @@ const updateTariff = async (id: string, payload: IUpdateTariff) => {
 
 	// Validate price
 	if (pricePerUnit < 0) {
-		throw new Error("Price per unit cannot be negative");
+		throw new AppError(400, "Price per unit cannot be negative");
 	}
 
 	// Check overlapping tariff range
@@ -177,7 +183,10 @@ const updateTariff = async (id: string, payload: IUpdateTariff) => {
 	});
 
 	if (overlappingTariff) {
-		throw new Error("Tariff unit range overlaps with an existing tariff");
+		throw new AppError(
+			409,
+			"Tariff unit range overlaps with an existing tariff",
+		);
 	}
 
 	const tariff = await prisma.tariff.update({
@@ -214,7 +223,7 @@ const deleteTariff = async (id: string) => {
 	});
 
 	if (!existingTariff) {
-		throw new Error("Tariff not found");
+		throw new AppError(404, "Tariff not found");
 	}
 
 	const tariff = await prisma.tariff.delete({

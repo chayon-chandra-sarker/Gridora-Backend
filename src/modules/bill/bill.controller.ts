@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { billService } from "./bill.service";
+import AppError from "../../errors/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -30,7 +31,7 @@ const getSingleBill = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid bill id");
+		throw new AppError(400, "Invalid bill id");
 	}
 
 	const result = await billService.getSingleBill(id);
@@ -47,7 +48,7 @@ const getMyBills = catchAsync(async (req: Request, res: Response) => {
 	const userId = req.user?.id;
 
 	if (!userId) {
-		throw new Error("User not authenticated");
+		throw new AppError(401, "User not authenticated");
 	}
 
 	const result = await billService.getMyBills(userId);
@@ -64,7 +65,7 @@ const updateBill = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid bill id");
+		throw new AppError(400, "Invalid bill id");
 	}
 
 	const result = await billService.updateBill(id, req.body);
@@ -81,7 +82,7 @@ const deleteBill = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	if (!id || Array.isArray(id)) {
-		throw new Error("Invalid bill id");
+		throw new AppError(400, "Invalid bill id");
 	}
 
 	const result = await billService.deleteBill(id);

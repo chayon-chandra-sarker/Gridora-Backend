@@ -1,3 +1,4 @@
+import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 
 import type { ICreateComplaint, IUpdateComplaint } from "./complaint.interface";
@@ -23,11 +24,11 @@ const createComplaint = async (userId: string, payload: ICreateComplaint) => {
 	const { title, description } = payload;
 
 	if (!title?.trim()) {
-		throw new Error("Complaint title is required");
+		throw new AppError(400, "Complaint title is required");
 	}
 
 	if (!description?.trim()) {
-		throw new Error("Complaint description is required");
+		throw new AppError(400, "Complaint description is required");
 	}
 
 	// Check user
@@ -38,7 +39,7 @@ const createComplaint = async (userId: string, payload: ICreateComplaint) => {
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new AppError(404, "User not found");
 	}
 
 	const complaint = await prisma.complaint.create({
@@ -90,7 +91,7 @@ const getSingleComplaint = async (id: string) => {
 	});
 
 	if (!complaint) {
-		throw new Error("Complaint not found");
+		throw new AppError(404, "Complaint not found");
 	}
 
 	return complaint;
@@ -118,15 +119,15 @@ const updateComplaint = async (id: string, payload: IUpdateComplaint) => {
 	});
 
 	if (!existingComplaint) {
-		throw new Error("Complaint not found");
+		throw new AppError(404, "Complaint not found");
 	}
 
 	if (payload.title !== undefined && !payload.title.trim()) {
-		throw new Error("Complaint title cannot be empty");
+		throw new AppError(400, "Complaint title cannot be empty");
 	}
 
 	if (payload.description !== undefined && !payload.description.trim()) {
-		throw new Error("Complaint description cannot be empty");
+		throw new AppError(400, "Complaint description cannot be empty");
 	}
 
 	const complaint = await prisma.complaint.update({
@@ -166,7 +167,7 @@ const deleteComplaint = async (id: string) => {
 	});
 
 	if (!existingComplaint) {
-		throw new Error("Complaint not found");
+		throw new AppError(404, "Complaint not found");
 	}
 
 	const complaint = await prisma.complaint.delete({
