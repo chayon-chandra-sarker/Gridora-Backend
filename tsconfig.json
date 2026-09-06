@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
 
     "module": "CommonJS",
     "moduleResolution": "Bundler",
