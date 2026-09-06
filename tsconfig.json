@@ -4,9 +4,9 @@
     "rootDir": "./src",
 
     "module": "CommonJS",
-    "moduleResolution": "node",
-    "target": "ES2023",
+    "moduleResolution": "Bundler",
 
+    "target": "ES2023",
     "types": ["node"],
 
     "sourceMap": true,
@@ -22,9 +22,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
 
-    "skipLibCheck": true,
-
-    "ignoreDeprecations": "6.0"
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
