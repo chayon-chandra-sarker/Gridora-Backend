@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
 import type { SignOptions } from "jsonwebtoken";
 
 dotenv.config({ path: path.join(process.cwd(), ".env") });

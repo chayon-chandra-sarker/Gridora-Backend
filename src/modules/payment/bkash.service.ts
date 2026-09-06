@@ -35,9 +35,7 @@ export const getBkashIdToken = async () => {
 
 			throw new AppError(
 				502,
-				result?.statusMessage ||
-					result?.message ||
-					"Failed to get bKash token",
+				result?.statusMessage || result?.message || "Failed to get bKash token",
 			);
 		}
 
@@ -50,20 +48,14 @@ export const getBkashIdToken = async () => {
 		}
 
 		if (error instanceof Error) {
-			throw new AppError(
-				502,
-				`bKash connection failed: ${error.message}`,
-			);
+			throw new AppError(502, `bKash connection failed: ${error.message}`);
 		}
 
 		throw new AppError(502, "Failed to connect to bKash");
 	}
 };
 
-export const createBkashPayment = async (
-	userId: string,
-	billId: string,
-) => {
+export const createBkashPayment = async (userId: string, billId: string) => {
 	const bill = await prisma.bill.findUnique({
 		where: {
 			id: billId,
@@ -191,27 +183,20 @@ export const executeBkashPayment = async (paymentID: string) => {
 	});
 
 	if (!payment) {
-		throw new AppError(
-			404,
-			"Payment record not found for this bKash payment",
-		);
+		throw new AppError(404, "Payment record not found for this bKash payment");
 	}
 
 	// Check payment status
 
 	const isSuccessful =
-		result?.transactionStatus === "Completed" &&
-		result?.statusCode === "0000";
+		result?.transactionStatus === "Completed" && result?.statusCode === "0000";
 
 	// Failed Payment
-	
+
 	if (!isSuccessful) {
-		const failedPayment = await paymentService.updatePayment(
-			payment.id,
-			{
-				status: "FAILED",
-			},
-		);
+		const failedPayment = await paymentService.updatePayment(payment.id, {
+			status: "FAILED",
+		});
 
 		return {
 			success: false,
@@ -222,13 +207,10 @@ export const executeBkashPayment = async (paymentID: string) => {
 
 	// Successful Payment
 
-	const updatedPayment = await paymentService.updatePayment(
-		payment.id,
-		{
-			status: "SUCCESS",
-			transactionId: result.trxID,
-		},
-	);
+	const updatedPayment = await paymentService.updatePayment(payment.id, {
+		status: "SUCCESS",
+		transactionId: result.trxID,
+	});
 
 	// Get Customer + Bill Information
 

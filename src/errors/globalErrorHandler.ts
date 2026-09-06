@@ -9,7 +9,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
 	error,
 	_req,
 	res,
-	next,
+	_next,
 ) => {
 	let statusCode: number = 500;
 	let message = "Something went wrong!";

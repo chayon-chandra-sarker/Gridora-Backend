@@ -54,14 +54,10 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	const { idToken } = req.body;
 
 	if (!idToken) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"Google ID token is required",
-		);
+		throw new AppError(httpStatus.BAD_REQUEST, "Google ID token is required");
 	}
 
-	const { accessToken, refreshToken } =
-		await authService.googleLogin(idToken);
+	const { accessToken, refreshToken } = await authService.googleLogin(idToken);
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
@@ -155,7 +151,6 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
 	const { email } = req.body;
 
@@ -168,7 +163,6 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
 		data: result,
 	});
 });
-
 
 const verifyOtp = catchAsync(async (req: Request, res: Response) => {
 	const { email, otp } = req.body;
@@ -183,15 +177,10 @@ const verifyOtp = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
 	const { email, otp, newPassword } = req.body;
 
-	const result = await authService.resetPassword(
-		email,
-		otp,
-		newPassword,
-	);
+	const result = await authService.resetPassword(email, otp, newPassword);
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,

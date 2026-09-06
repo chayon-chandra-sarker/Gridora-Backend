@@ -7,9 +7,7 @@ const registerValidationSchema = z.object({
 			.min(2, "Name must be at least 2 characters long")
 			.max(100, "Name must not exceed 100 characters"),
 
-		email: z
-			.string()
-			.email("Please provide a valid email address"),
+		email: z.string().email("Please provide a valid email address"),
 
 		password: z
 			.string()
@@ -27,10 +25,7 @@ const registerValidationSchema = z.object({
 			.min(1, "Customer number cannot be empty")
 			.optional(),
 
-		meterNumber: z
-			.string()
-			.min(1, "Meter number cannot be empty")
-			.optional(),
+		meterNumber: z.string().min(1, "Meter number cannot be empty").optional(),
 
 		address: z
 			.string()
@@ -41,53 +36,37 @@ const registerValidationSchema = z.object({
 
 const loginValidationSchema = z.object({
 	body: z.object({
-		email: z
-			.string()
-			.email("Please provide a valid email address"),
+		email: z.string().email("Please provide a valid email address"),
 
-		password: z
-			.string()
-			.min(8, "Password must be at least 8 characters long"),
+		password: z.string().min(8, "Password must be at least 8 characters long"),
 	}),
 });
 
 const googleLoginValidationSchema = z.object({
 	body: z.object({
-		idToken: z
-			.string()
-			.min(1, "Google ID token is required"),
+		idToken: z.string().min(1, "Google ID token is required"),
 	}),
 });
 
 const forgotPasswordValidationSchema = z.object({
 	body: z.object({
-		email: z
-			.string()
-			.email("Please provide a valid email address"),
+		email: z.string().email("Please provide a valid email address"),
 	}),
 });
 
 const verifyOtpValidationSchema = z.object({
 	body: z.object({
-		email: z
-			.string()
-			.email("Please provide a valid email address"),
+		email: z.string().email("Please provide a valid email address"),
 
-		otp: z
-			.string()
-			.regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+		otp: z.string().regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
 	}),
 });
 
 const resetPasswordValidationSchema = z.object({
 	body: z.object({
-		email: z
-			.string()
-			.email("Please provide a valid email address"),
+		email: z.string().email("Please provide a valid email address"),
 
-		otp: z
-			.string()
-			.regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+		otp: z.string().regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
 
 		newPassword: z
 			.string()

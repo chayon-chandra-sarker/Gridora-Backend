@@ -36,5 +36,4 @@ router.put(
 	userController.updateUserStatus,
 );
 
-
 export const userRouter = router;

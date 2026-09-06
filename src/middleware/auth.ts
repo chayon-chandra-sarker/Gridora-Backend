@@ -27,76 +27,78 @@ declare global {
 // ==================== AUTH MIDDLEWARE ====================
 
 export const auth = (...requiredRoles: UserRole[]) => {
-	return catchAsync(async (req: Request, _res: Response, next: NextFunction) => {
-		// Get access token from cookie or Authorization header
-		const token = req.cookies.accessToken
-			? req.cookies.accessToken
-			: req.headers.authorization?.startsWith("Bearer ")
-				? req.headers.authorization.split(" ")[1]
-				: req.headers.authorization;
+	return catchAsync(
+		async (req: Request, _res: Response, next: NextFunction) => {
+			// Get access token from cookie or Authorization header
+			const token = req.cookies.accessToken
+				? req.cookies.accessToken
+				: req.headers.authorization?.startsWith("Bearer ")
+					? req.headers.authorization.split(" ")[1]
+					: req.headers.authorization;
 
-		// Token missing
-		if (!token) {
-			throw new AppError(
-				httpStatus.UNAUTHORIZED,
-				"You are not logged in. Please log in to access this resource.",
-			);
-		}
+			// Token missing
+			if (!token) {
+				throw new AppError(
+					httpStatus.UNAUTHORIZED,
+					"You are not logged in. Please log in to access this resource.",
+				);
+			}
 
-		// Verify token
-		const decoded = jwtUtils.verifiedToken(
-			token,
-			config.jwt_access_secret,
-		) as JwtPayload;
+			// Verify token
+			const decoded = jwtUtils.verifiedToken(
+				token,
+				config.jwt_access_secret,
+			) as JwtPayload;
 
-		const { id } = decoded;
+			const { id } = decoded;
 
-		if (!id) {
-			throw new AppError(
-				httpStatus.UNAUTHORIZED,
-				"Invalid authentication token.",
-			);
-		}
+			if (!id) {
+				throw new AppError(
+					httpStatus.UNAUTHORIZED,
+					"Invalid authentication token.",
+				);
+			}
 
-		// Get latest user information from database
-		const user = await prisma.user.findUnique({
-			where: {
-				id: String(id),
-			},
-		});
+			// Get latest user information from database
+			const user = await prisma.user.findUnique({
+				where: {
+					id: String(id),
+				},
+			});
 
-		// User not found
-		if (!user) {
-			throw new AppError(
-				httpStatus.NOT_FOUND,
-				"User not found. Please login again.",
-			);
-		}
+			// User not found
+			if (!user) {
+				throw new AppError(
+					httpStatus.NOT_FOUND,
+					"User not found. Please login again.",
+				);
+			}
 
-		// Check whether account is active
-		if (!user.isActive) {
-			throw new AppError(
-				httpStatus.FORBIDDEN,
-				"Your account is inactive. Please contact support.",
-			);
-		}
+			// Check whether account is active
+			if (!user.isActive) {
+				throw new AppError(
+					httpStatus.FORBIDDEN,
+					"Your account is inactive. Please contact support.",
+				);
+			}
 
-		// Check current database role
-		if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
-			throw new AppError(
-				httpStatus.FORBIDDEN,
-				"You don't have permission to access this resource.",
-			);
-		}
+			// Check current database role
+			if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
+				throw new AppError(
+					httpStatus.FORBIDDEN,
+					"You don't have permission to access this resource.",
+				);
+			}
 
-		// Attach user to request
-		req.user = {
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			role: user.role,
-		};
+			// Attach user to request
+			req.user = {
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+			};
 
-		next();
-	});
+			next();
+		},
+	);
 };

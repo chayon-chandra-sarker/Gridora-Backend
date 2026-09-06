@@ -305,8 +305,7 @@ const updateBill = async (id: string, payload: IUpdateBill) => {
 	if (payload.userId !== undefined || payload.billingMonth !== undefined) {
 		const userId = payload.userId ?? existingBill.userId;
 
-		const billingMonth =
-			payload.billingMonth ?? existingBill.billingMonth;
+		const billingMonth = payload.billingMonth ?? existingBill.billingMonth;
 
 		const duplicateBill = await prisma.bill.findFirst({
 			where: {
@@ -330,8 +329,7 @@ const updateBill = async (id: string, payload: IUpdateBill) => {
 	const previousReading =
 		payload.previousReading ?? existingBill.previousReading;
 
-	const currentReading =
-		payload.currentReading ?? existingBill.currentReading;
+	const currentReading = payload.currentReading ?? existingBill.currentReading;
 
 	if (previousReading < 0 || currentReading < 0) {
 		throw new AppError(400, "Reading cannot be negative");

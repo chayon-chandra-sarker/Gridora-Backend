@@ -16,7 +16,6 @@ import { tariffRoutes } from "./modules/tariff/tariff.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
 import { complaintRoutes } from "./modules/complaint/complaint.route";
 
-
 const app: Application = express();
 
 // ==================== CORS ====================

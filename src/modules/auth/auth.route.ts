@@ -28,11 +28,7 @@ router.post(
 
 router.post("/refresh-token", authController.refreshToken);
 
-router.get(
-	"/me",
-	auth("CUSTOMER", "OPERATOR", "ADMIN"),
-	authController.getMe,
-);
+router.get("/me", auth("CUSTOMER", "OPERATOR", "ADMIN"), authController.getMe);
 
 router.post("/logout", authController.logout);
 

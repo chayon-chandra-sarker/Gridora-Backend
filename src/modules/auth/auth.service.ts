@@ -14,15 +14,8 @@ import AppError from "../../errors/AppError";
 const googleClient = new OAuth2Client(config.google_client_id);
 
 const registerUser = async (payload: IRegisterUser) => {
-	const {
-		name,
-		email,
-		password,
-		phone,
-		customerNumber,
-		meterNumber,
-		address,
-	} = payload;
+	const { name, email, password, phone, customerNumber, meterNumber, address } =
+		payload;
 
 	const existingUser = await prisma.user.findUnique({
 		where: { email },
@@ -105,10 +98,7 @@ const loginUser = async (payload: ILoginUser) => {
 		throw new AppError(400, "This account does not have a password");
 	}
 
-	const isPasswordMatched = await bcrypt.compare(
-		password,
-		user.password,
-	);
+	const isPasswordMatched = await bcrypt.compare(password, user.password);
 
 	if (!isPasswordMatched) {
 		throw new AppError(401, "Invalid email or password");
@@ -151,18 +141,10 @@ const googleLogin = async (idToken: string) => {
 		throw new AppError(401, "Invalid Google token");
 	}
 
-	const {
-		sub: googleId,
-		email,
-		name,
-		email_verified,
-	} = payload;
+	const { sub: googleId, email, name, email_verified } = payload;
 
 	if (!googleId || !email) {
-		throw new AppError(
-			400,
-			"Google account information is incomplete",
-		);
+		throw new AppError(400, "Google account information is incomplete");
 	}
 
 	if (!email_verified) {
@@ -315,35 +297,24 @@ const forgotPassword = async (email: string) => {
 	}
 
 	// Generate 6 digit OTP
-	const otp = Math.floor(
-		100000 + Math.random() * 900000,
-	).toString();
+	const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
 	// Redis key
 	const redisKey = `password-reset:${email}`;
 
 	// Store OTP in Redis for 2 minutes
-	await redis.set(
-		redisKey,
-		otp,
-		"EX",
-		120,
-	);
+	await redis.set(redisKey, otp, "EX", 120);
 
 	// Send OTP email
 	await sendOTPEmail(email, otp);
 
 	return {
 		email,
-		message:
-			"OTP sent successfully. OTP will expire in 2 minutes.",
+		message: "OTP sent successfully. OTP will expire in 2 minutes.",
 	};
 };
 
-const verifyOtp = async (
-	email: string,
-	otp: string,
-) => {
+const verifyOtp = async (email: string, otp: string) => {
 	const redisKey = `password-reset:${email}`;
 
 	// Get OTP from Redis
@@ -371,10 +342,7 @@ const resetPassword = async (
 ) => {
 	// Password validation
 	if (!newPassword || newPassword.length < 8) {
-		throw new AppError(
-			400,
-			"Password must be at least 8 characters long",
-		);
+		throw new AppError(400, "Password must be at least 8 characters long");
 	}
 
 	// Find user
@@ -395,10 +363,7 @@ const resetPassword = async (
 	const storedOTP = await redis.get(redisKey);
 
 	if (!storedOTP) {
-		throw new AppError(
-			400,
-			"OTP expired or password reset request not found",
-		);
+		throw new AppError(400, "OTP expired or password reset request not found");
 	}
 
 	// Verify OTP
@@ -407,10 +372,7 @@ const resetPassword = async (
 	}
 
 	// Hash new password
-	const hashedPassword = await bcrypt.hash(
-		newPassword,
-		10,
-	);
+	const hashedPassword = await bcrypt.hash(newPassword, 10);
 
 	// Update password
 	await prisma.user.update({
