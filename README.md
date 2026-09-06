@@ -11,9 +11,9 @@ The backend is built with **Node.js, Express.js, TypeScript, PostgreSQL, Prisma 
 | Information            | Details                      |
 | ---------------------- | ---------------------------- |
 | **Project Name**       | Gridora                      |
-| **Backend Repository** | `YOUR_GITHUB_REPOSITORY_URL` |
-| **Live API**           | `YOUR_LIVE_API_URL`          |
-| **API Docs**           | `YOUR_API_DOCS_URL`          |
+| **Backend Repository** | `https://github.com/chayon-chandra-sarker/Gridora-Backend` |
+| **Live API**           | `https://gridora-backend-ppfm.onrender.com/`          |
+| **API Docs**           | `https://gmail-922659.docs.buildwithfern.com`          |
 | **Deployment**         | Render                       |
 | **Database**           | PostgreSQL                   |
 | **ORM**                | Prisma                       |
@@ -26,15 +26,15 @@ The backend is built with **Node.js, Express.js, TypeScript, PostgreSQL, Prisma 
 
 ### Backend Repository
 
-`YOUR_GITHUB_REPOSITORY_URL`
+`https://github.com/chayon-chandra-sarker/Gridora-Backend`
 
 ### Live API
 
-`YOUR_LIVE_API_URL`
+`https://gridora-backend-ppfm.onrender.com/`
 
 ### API Documentation
 
-`YOUR_API_DOCS_URL`
+`https://gmail-922659.docs.buildwithfern.com`
 
 ---
 
@@ -677,7 +677,7 @@ http://localhost:5000/api
 ### Production
 
 ```text
-YOUR_LIVE_API_URL/api
+https://gridora-backend-ppfm.onrender.com/api
 ```
 
 ---
