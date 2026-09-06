@@ -9,6 +9,7 @@ import { jwtUtils } from "../../utils/jwt";
 import { sendOTPEmail } from "../../utils/email";
 
 import type { ILoginUser, IRegisterUser } from "./auth.interface";
+import AppError from "../../errors/AppError";
 
 const googleClient = new OAuth2Client(config.google_client_id);
 
@@ -93,15 +94,18 @@ const loginUser = async (payload: ILoginUser) => {
 	});
 
 	if (!user) {
-		throw new Error("Invalid email or password");
+		throw new AppError(401, "Invalid email or password");
 	}
 
 	if (!user.isActive) {
-		throw new Error("Your account is inactive");
+		throw new AppError(403, "Your account is inactive");
 	}
 
 	if (!user.password) {
-		throw new Error("This account does not have a password");
+		throw new AppError(
+			400,
+			"This account does not have a password",
+		);
 	}
 
 	const isPasswordMatched = await bcrypt.compare(
@@ -110,7 +114,7 @@ const loginUser = async (payload: ILoginUser) => {
 	);
 
 	if (!isPasswordMatched) {
-		throw new Error("Invalid email or password");
+		throw new AppError(401, "Invalid email or password");
 	}
 
 	const jwtPayload = {

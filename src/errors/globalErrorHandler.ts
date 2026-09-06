@@ -75,5 +75,5 @@ export const globalErrorHandler: ErrorRequestHandler = (
 				: undefined,
 	});
 
-	next();
+	// next();
 };

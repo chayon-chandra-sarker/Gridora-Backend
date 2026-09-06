@@ -1,16 +1,30 @@
 import { Router } from "express";
 
 import { authController } from "./auth.controller";
+import { authValidation } from "./auth.validation";
 
 import { auth } from "../../middleware/auth";
+import validateRequest from "../../middleware/validateRequest";
 
 const router = Router();
 
-router.post("/register", authController.registerUser);
+router.post(
+	"/register",
+	validateRequest(authValidation.registerValidationSchema),
+	authController.registerUser,
+);
 
-router.post("/login", authController.loginUser);
+router.post(
+	"/login",
+	validateRequest(authValidation.loginValidationSchema),
+	authController.loginUser,
+);
 
-router.post("/google", authController.googleLogin);
+router.post(
+	"/google",
+	validateRequest(authValidation.googleLoginValidationSchema),
+	authController.googleLogin,
+);
 
 router.post("/refresh-token", authController.refreshToken);
 
@@ -22,10 +36,22 @@ router.get(
 
 router.post("/logout", authController.logout);
 
-router.post("/forgot-password", authController.forgotPassword);
+router.post(
+	"/forgot-password",
+	validateRequest(authValidation.forgotPasswordValidationSchema),
+	authController.forgotPassword,
+);
 
-router.post("/verify-otp", authController.verifyOtp);
+router.post(
+	"/verify-otp",
+	validateRequest(authValidation.verifyOtpValidationSchema),
+	authController.verifyOtp,
+);
 
-router.post("/reset-password", authController.resetPassword);
+router.post(
+	"/reset-password",
+	validateRequest(authValidation.resetPasswordValidationSchema),
+	authController.resetPassword,
+);
 
 export const authRoutes = router;
