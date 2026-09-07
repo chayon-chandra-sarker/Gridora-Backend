@@ -13,9 +13,7 @@ model User {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   googleId       String?     @unique
-
   image          String?
-
   bills          Bill[]
   complaints     Complaint[]
   payments       Payment[]
