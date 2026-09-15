@@ -6,198 +6,197 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 
 import { authService } from "./auth.service";
+import config from "../../config";
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
+  const payload = req.body;
 
-	const result = await authService.registerUser(payload);
+  const result = await authService.registerUser(payload);
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.CREATED,
-		message: "User registered successfully",
-		data: result,
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "User registered successfully",
+    data: result,
+  });
 });
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
+  const payload = req.body;
 
-	const { accessToken, refreshToken } = await authService.loginUser(payload);
+  const { accessToken, refreshToken } = await authService.loginUser(payload);
 
-	res.cookie("accessToken", accessToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24,
-	});
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: config.node_env === "development" ? false : true,
+    sameSite: config.node_env === "development" ? "lax" : "none",
+    maxAge: 1000 * 60 * 60 * 24,
+  });
 
-	res.cookie("refreshToken", refreshToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24 * 7,
-	});
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: "User logged in successfully",
-		data: {
-			accessToken,
-			refreshToken,
-		},
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User logged in successfully",
+    data: {
+      accessToken,
+      refreshToken,
+    },
+  });
 });
 
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
-	const { idToken } = req.body;
+  const { idToken } = req.body;
 
-	if (!idToken) {
-		throw new AppError(httpStatus.BAD_REQUEST, "Google ID token is required");
-	}
+  if (!idToken) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Google ID token is required");
+  }
 
-	const { accessToken, refreshToken } = await authService.googleLogin(idToken);
+  const { accessToken, refreshToken } = await authService.googleLogin(idToken);
 
-	res.cookie("accessToken", accessToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24,
-	});
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: config.node_env === "development" ? false : true,
+    maxAge: 1000 * 60 * 60 * 24,
+  });
 
-	res.cookie("refreshToken", refreshToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24 * 7,
-	});
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    sameSite: config.node_env === "development" ? "lax" : "none",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: "Google login successful",
-		data: {
-			accessToken,
-			refreshToken,
-		},
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Google login successful",
+    data: {
+      accessToken,
+      refreshToken,
+    },
+  });
 });
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
-	const { refreshToken } = req.cookies;
+  const { refreshToken } = req.cookies;
 
-	if (!refreshToken) {
-		return sendResponse(res, {
-			success: false,
-			statusCode: httpStatus.UNAUTHORIZED,
-			message: "Refresh token is missing",
-			data: null,
-		});
-	}
+  if (!refreshToken) {
+    return sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.UNAUTHORIZED,
+      message: "Refresh token is missing",
+      data: null,
+    });
+  }
 
-	const result = await authService.refreshToken(refreshToken);
+  const result = await authService.refreshToken(refreshToken);
 
-	res.cookie("accessToken", result.accessToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24,
-	});
+  res.cookie("accessToken", result.accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24,
+  });
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: "Access token refreshed successfully",
-		data: {
-			accessToken: result.accessToken,
-		},
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Access token refreshed successfully",
+    data: {
+      accessToken: result.accessToken,
+    },
+  });
 });
 
 const logout = catchAsync(async (_req: Request, res: Response) => {
-	res.clearCookie("accessToken", {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-	});
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
 
-	res.clearCookie("refreshToken", {
-		httpOnly: true,
-		secure: true,
-		sameSite: "none",
-	});
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: "User logged out successfully",
-		data: null,
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User logged out successfully",
+    data: null,
+  });
 });
 
 const getMe = catchAsync(async (req: Request, res: Response) => {
-	if (!req.user) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
-	}
+  if (!req.user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
+  }
 
-	const user = await authService.getMe(req.user.id);
+  const user = await authService.getMe(req.user.id);
 
-	sendResponse(res, {
-		success: true,
-		statusCode: httpStatus.OK,
-		message: "User profile retrieved successfully",
-		data: user,
-	});
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User profile retrieved successfully",
+    data: user,
+  });
 });
 
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
-	const { email } = req.body;
+  const { email } = req.body;
 
-	const result = await authService.forgotPassword(email);
+  const result = await authService.forgotPassword(email);
 
-	sendResponse(res, {
-		statusCode: httpStatus.OK,
-		success: true,
-		message: "OTP sent successfully.",
-		data: result,
-	});
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP sent successfully.",
+    data: result,
+  });
 });
 
 const verifyOtp = catchAsync(async (req: Request, res: Response) => {
-	const { email, otp } = req.body;
+  const { email, otp } = req.body;
 
-	const result = await authService.verifyOtp(email, otp);
+  const result = await authService.verifyOtp(email, otp);
 
-	sendResponse(res, {
-		statusCode: httpStatus.OK,
-		success: true,
-		message: "OTP verified successfully",
-		data: result,
-	});
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "OTP verified successfully",
+    data: result,
+  });
 });
 
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-	const { email, otp, newPassword } = req.body;
+  const { email, otp, newPassword } = req.body;
 
-	const result = await authService.resetPassword(email, otp, newPassword);
+  const result = await authService.resetPassword(email, otp, newPassword);
 
-	sendResponse(res, {
-		statusCode: httpStatus.OK,
-		success: true,
-		message: "Password reset successfully",
-		data: result,
-	});
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password reset successfully",
+    data: result,
+  });
 });
 
 export const authController = {
-	registerUser,
-	loginUser,
-	googleLogin,
-	refreshToken,
-	logout,
-	getMe,
-	forgotPassword,
-	verifyOtp,
-	resetPassword,
+  registerUser,
+  loginUser,
+  googleLogin,
+  refreshToken,
+  logout,
+  getMe,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
 };
